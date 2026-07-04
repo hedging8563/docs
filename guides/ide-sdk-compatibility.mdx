@@ -35,11 +35,11 @@ This page is intentionally narrower than a marketing matrix:
 | **Cursor** | Supported with limits | OpenAI-compatible | Works for BYOK standard chat/editor flows, not as a replacement for Cursor-managed features like Tab Completion |
 | **Claude Code CLI** | Strong native path | Anthropic | Native `/v1/messages` route with adapter coverage for thinking and `tool_choice` |
 | **Codex CLI** | Supported with model/path limits | OpenAI Responses | Treat `/v1/responses` as an advanced path for Codex-specific workflows; some Responses-only fields are not guaranteed across every model and routed path |
-| **Gemini CLI** | Best-effort / experimental | Gemini | Custom AI Sonar base URL flow is not a stable upstream contract |
+| **Gemini CLI** | Best-effort / experimental | Gemini | Custom AI Sonar base URL flow is not an official Gemini CLI integration |
 | **OpenCode** | Supported | OpenAI-compatible | Use an OpenAI-compatible provider by default; move to a Responses-based provider only when you explicitly need it |
 
 <Note>
-  Other OpenAI-compatible editors and agent tools often work with the same base URL pattern, but this repo does not currently maintain tool-specific regression coverage for Windsurf, Aider, Continue.dev, Cline/Roo Code, GitHub Copilot, and similar clients.
+  Other OpenAI-compatible editors and agent tools often work with the same base URL pattern; check the tool’s own custom-provider support before using it in production.
 </Note>
 
 ### Configuration Examples
@@ -346,7 +346,7 @@ See [Error Handling Guide](/guides/error-handling) for details.
 
 <AccordionGroup>
   <Accordion title="Use passthrough for unknown parameters">
-    All schemas use `.passthrough()` - unknown parameters are forwarded to upstream providers.
+    Unknown parameters are forwarded only when the selected public route and model support them.
   </Accordion>
 
   <Accordion title="Prefer stream_options for accurate billing">

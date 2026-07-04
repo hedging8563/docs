@@ -18,14 +18,14 @@ description: "创建一个视频生成任务"
 
 ### 模型与媒体行为
 
-音频输出是否开启取决于具体模型。在 AI Sonar 中，Veo 3 家族在省略 `output_audio` 时默认按开启音频处理；当模型支持音频控制时，可通过 `output_audio` 显式切换。为了兼容历史请求，也接受 camelCase 别名 `outputAudio`。
+音频输出是否开启取决于具体模型。在 AI Sonar 中，Veo 3 和 Seedance 请求在省略 `output_audio` 时默认按开启音频处理。模型支持音频控制时，可用 `output_audio` 显式切换；兼容别名 `outputAudio` 和 `generate_audio` 也可以使用，但多个字段同时出现时值必须一致。
 
 生产集成中，建议优先使用公网可访问的 `https` URL 作为图片、视频和音频输入。兼容模型仍支持内联 `data:` URL，但大体积 base64 在重试、观测和排障时通常更不友好。
 
 ## 请求体
 
 <ParamField body="model" type="string" default="veo3.1">
-  视频模型 ID。API 默认值为 `veo3.1`。有关当前公开视频模型矩阵和支持能力，请参阅 [视频生成指南](/zh/guides/video-generation)。
+  视频模型 ID。请使用 `veo3.1`、`wan-2.7`、`happyhorse-1.0`、`viduq3`、`pixverse-v6`、`kling-3.0-video` 等模型 ID；文生视频、图生视频、参考图生视频等能力用 `operation` 选择。当前公开视频能力请参考[视频生成指南](/zh/guides/video-generation)和 [Models API](/zh/api-reference/models/list-models)。
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -33,7 +33,7 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="operation" type="string">
-  要执行的视频操作。公开契约支持 `text-to-video`、`image-to-video`、`reference-to-video`、`start-end-to-video`、`video-to-video`、`video-extension`、`audio-to-video` 和 `motion-control`。AI Sonar 可以根据输入自动推断操作，但生产环境仍建议显式传入 `operation`。
+  要执行的视频操作。支持 `text-to-video`、`image-to-video`、`reference-to-video`、`start-end-to-video`、`video-to-video`、`video-extension`、`audio-to-video` 和 `motion-control`。AI Sonar 可以根据输入自动推断操作，但生产环境仍建议显式传入 `operation`。
 </ParamField>
 
 <ParamField body="image_url" type="string">
@@ -45,7 +45,15 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="reference_images" type="array">
-用于参考图生视频的参考图输入。可传数量取决于模型。对于 `seedance-2.0` 和 `seedance-2.0-fast`，AI Sonar 当前支持最多 9 张参考图，外加最多 3 段参考视频和 3 段参考音频。建议优先使用公网 `https` URL；兼容模型也支持内联 `data:` URL。 对于 `grok-imagine-video`，reference-to-video 最多接受 7 个图片参考，且 `duration` 最高为 10 秒。`grok-imagine-video-1.5-preview` 仅支持图生视频，不接受参考图片。
+用于参考图生视频的参考图输入。可传数量取决于模型。对于 `seedance-2.0` 和 `seedance-2.0-fast`，AI Sonar 当前支持最多 9 张参考图，外加最多 3 段参考视频和 3 段参考音频。模型选型、4K 边界和 Mini 说明请参考 [Seedance 2.0 视频模型指南](/zh/guides/seedance-2-video)。建议优先使用公网 `https` URL；兼容模型也支持内联 `data:` URL。 对于 `grok-imagine-video`，reference-to-video 最多接受 7 个图片参考，且 `duration` 最高为 10 秒。`grok-imagine-video-1.5-preview` 仅支持图生视频，不接受参考图片。
+</ParamField>
+
+<ParamField body="material_asset_id" type="string">
+  [创建素材](/zh/api-reference/video/create-material-asset)返回的 AI Sonar Seedance 素材 ID。素材变为 `ACTIVE` 后，可在 Seedance 2.0 生成模型中使用。
+</ParamField>
+
+<ParamField body="material_asset_ids" type="array">
+  多个 AI Sonar Seedance 素材 ID。它们与 `reference_images` 共用 Seedance 图片参考数量限制；Seedance 2.0 最多传 9 个图片参考。
 </ParamField>
 
 <ParamField body="reference_image_type" type="string">
@@ -57,7 +65,7 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="video_url" type="string">
-  源视频的公网 URL。当前公开 `video-to-video` 流程以及 `motion-control` 模型都需要该字段。
+  源视频的公网 URL。基于视频 URL 的 `video-to-video` 流程和 `motion-control` 需要该字段；部分衍生流程改用 `task_id`。
 </ParamField>
 
 <ParamField body="video_urls" type="array">
@@ -73,7 +81,7 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="task_id" type="string">
-  某些续写、扩展或衍生流程使用的 Provider 侧任务 ID。
+  某些续写、扩展或衍生流程使用的任务标识符。
 </ParamField>
 
 <ParamField body="extend_at" type="integer">
@@ -85,19 +93,55 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="duration" type="integer">
-  生成输出视频的时长（秒），取决于模型。该字段只控制输出时长，不表示参考视频输入时长限制。
+  生成输出视频的时长（秒）。Seedance 1.5/2.0 模型省略时默认 `5` 秒；传 `-1` 表示让模型在支持范围内自动选择时长，任务完成前会按保守方式预估费用。
+</ParamField>
+
+<ParamField body="seconds" type="integer">
+  `duration` 的兼容别名。若同时传 `seconds` 和 `duration`，两者必须完全一致。对 Seedance，`seconds=-1` 与 `duration=-1` 一样表示自动时长。
 </ParamField>
 
 <ParamField body="aspect_ratio" type="string">
-  宽高比，例如 `16:9`、`9:16`、`1:1`。
+  规范宽高比，例如 `adaptive`、`16:9`、`9:16`、`1:1`、`4:3`、`3:4` 或 `21:9`。Seedance 省略时默认 `adaptive`。
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  输出分辨率，例如 `720p`、`1080p`、`4k`，具体取决于模型。
+  模型相关的输出分辨率。Seedance 省略时默认 `720p`；`seedance-2.0` 支持 `480p`、`720p`、`1080p` 和 `4k`，`seedance-2.0-fast` / `seedance-2.0-mini` 仅支持 `480p` 和 `720p`。
 </ParamField>
 
 <ParamField body="output_audio" type="boolean">
-  模型相关的音频输出开关。在 AI Sonar 中，Veo 3 家族在省略该字段时默认按 `true` 处理；`kling-3.0-video` 仅在非元素引用请求中接受该 selector，并会映射到兼容上游的 sound 控制，Kling 请求省略时默认无声。不要将 `output_audio=true` 与 `kling_elements` 组合使用。其他公开视频模型按各自治理后的默认行为执行。为了兼容历史请求，也接受 camelCase 别名 `outputAudio`。
+  规范的音频输出开关。Veo 3 和 Seedance 省略时默认 `true`。`kling-3.0-video` 仅在非元素引用请求中接受该字段，省略时默认无声。不要将 `output_audio=true` 与 `kling_elements` 组合使用。
+</ParamField>
+
+<ParamField body="ratio" type="string">
+  `aspect_ratio` 的兼容别名。若同时传 `ratio` 和 `aspect_ratio`，两者必须完全一致。
+</ParamField>
+
+<ParamField body="generate_audio" type="boolean">
+  `output_audio` 的兼容别名。`generate_audio`、`output_audio`、`outputAudio` 同时出现时，所有值必须一致。
+</ParamField>
+
+<ParamField body="execution_expires_after" type="integer">
+  兼容视频模型的执行过期时间（秒）。Seedance 省略时默认 `172800` 秒。
+</ParamField>
+
+<ParamField body="priority" type="integer">
+  兼容视频模型的任务优先级，范围 `0` 到 `9`。不要把 `priority` 与 `service_tier=flex` 组合使用。
+</ParamField>
+
+<ParamField body="safety_identifier" type="string">
+  兼容视频模型的终端用户安全标识。Seedance 未传该字段时，AI Sonar 会使用 `user` 的值。
+</ParamField>
+
+<ParamField body="service_tier" type="string">
+  `default` 对 Seedance 2.0 会按兼容 no-op 处理。只有所选模型明确支持时才可使用 `flex`。
+</ParamField>
+
+<ParamField body="frames" type="integer">
+  兼容视频模型的可选帧数。Seedance 2.0 模型和 Seedance 1.5 Pro 不支持该字段。
+</ParamField>
+
+<ParamField body="camera_fixed" type="boolean">
+  兼容视频模型的固定相机开关。Seedance 2.0 模型不支持该字段。
 </ParamField>
 
 <ParamField body="fps" type="integer">
@@ -109,7 +153,7 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  用于可复现生成的随机种子。
+  用于可复现生成的随机种子。Seedance 省略时使用 `-1` 表示随机种子。
 </ParamField>
 
 <ParamField body="cfg_scale" type="number">
@@ -129,11 +173,11 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="size" type="string">
-  某些 OpenAI 兼容视频模型使用的尺寸档位参数。
+  兼容视频模型使用的模型相关尺寸档位参数。
 </ParamField>
 
 <ParamField body="watermark" type="boolean">
-  某些模型暴露的水印开关。
+  某些模型暴露的水印开关。Seedance 省略时默认 `false`。
 </ParamField>
 
 <ParamField body="effect_type" type="string">
@@ -141,20 +185,44 @@ description: "创建一个视频生成任务"
 </ParamField>
 
 <ParamField body="user" type="string">
-  终端用户的唯一标识符。
+  终端用户的唯一标识符。对 Seedance，如果未传 `safety_identifier`，AI Sonar 会使用该值。
 </ParamField>
 
 ## 兼容说明
 
-- 公开契约中的规范字段为 snake_case：`reference_images`、`reference_image_type`、`output_audio`。
-- 为兼容已有调用，AI Sonar 也接受 camelCase 别名 `referenceImages`、`referenceImageType` 和 `outputAudio`。
-- 如果省略 `operation`，AI Sonar 会根据输入自动推断操作；但生产环境仍建议显式传入。
+- 规范公开字段继续使用 snake_case：`aspect_ratio`、`output_audio`、`reference_images` 和 `reference_image_type`。
+- 为了兼容已有调用，AI Sonar 也接受 `ratio`、`generate_audio`、`outputAudio`、`seconds`、`referenceImages` 和 `referenceImageType`。
+- 如果规范字段和别名字段同时出现，值必须一致；冲突会在创建任务前被拒绝。
+- 如果省略 `operation`，AI Sonar 会根据输入自动推断操作；生产环境仍建议显式传入。
 
 ## 输入最佳实践
 
 - 对于 `image_url`、`reference_images`、`video_url` 和 `audio_url`，建议优先使用公网可访问的 `https` URL。
 - 可以避免在同一请求中混用内联 base64 和远程 URL；统一一种表示方式更容易排障和重试。
-- 如果使用签名 URL，请确保有效期足够覆盖重试窗口和异步任务创建过程。
+- 请确保远程媒体 URL 的有效期足够覆盖重试窗口和异步任务创建过程。
+
+## Seedance 参数
+
+对于 Seedance 1.5/2.0 模型，统一接口以 AI Sonar 字段为主，同时接受兼容别名 `seconds`、`ratio` 和 `generate_audio`。省略 Seedance 参数时会使用这些默认值：`duration=5`、`resolution=720p`、`aspect_ratio=adaptive`、`output_audio=true`、`watermark=false`、`return_last_frame=false`、`execution_expires_after=172800`、`priority=0`、`seed=-1`。
+
+`duration=-1` 或 `seconds=-1` 表示让 Seedance 在模型支持范围内自动选择输出时长。AI Sonar 会在任务完成前按保守方式预估费用，并在可获得完成任务 usage 时按实际结果结算。`service_tier=default` 对 Seedance 2.0 作为兼容 no-op 接受；`service_tier=flex`、`frames`、`camera_fixed` 会在所选模型不支持时被拒绝。
+
+### Seedance 示例
+
+```bash cURL
+curl -X POST "https://api.aisonar.dev/v1/videos/generations" \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2.0",
+    "prompt": "A sleek product reveal with cinematic camera movement",
+    "operation": "text-to-video",
+    "duration": -1,
+    "aspect_ratio": "adaptive",
+    "resolution": "720p",
+    "output_audio": true
+  }'
+```
 
 ## 响应
 
@@ -195,7 +263,7 @@ description: "创建一个视频生成任务"
 </ResponseField>
 
 <ResponseField name="videos" type="array">
-  当上游返回多个输出时，可能出现视频数组。
+  当任务生成多个输出时，可能出现视频数组。
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -277,7 +345,7 @@ response = requests.post("https://api.aisonar.dev/v1/videos/generations",
 
 ## 参考图生视频
 
-当模型支持专门的参考条件控制时，请使用 `operation=reference-to-video`。在 AI Sonar 的公开契约中，图片参考素材使用 `reference_images`，多模态参考视频和参考音频分别使用 `video_urls` 与 `audio_urls`。对于 `seedance-2.0` 和 `seedance-2.0-fast`，AI Sonar 当前支持最多 9 张参考图，外加最多 3 段参考视频和 3 段参考音频。`duration` 只控制生成输出时长，不单独限制参考视频输入时长。 对于 `grok-imagine-video`，reference-to-video 最多接受 7 个图片参考（`reference_images` 或 `image_urls`），且 `duration` 最高为 10 秒。不要把参考图片与 `image_url` / `image` 首帧输入混用。`grok-imagine-video-1.5-preview` 仅支持图生视频。
+当模型支持专门的参考条件控制时，请使用 `operation=reference-to-video`。在 AI Sonar 请求中，图片参考素材使用 `reference_images`，多模态参考视频和参考音频分别使用 `video_urls` 与 `audio_urls`。对于 `seedance-2.0` 和 `seedance-2.0-fast`，AI Sonar 当前支持最多 9 张参考图，外加最多 3 段参考视频和 3 段参考音频。模型选型、4K 边界和 Mini 说明请参考 [Seedance 2.0 视频模型指南](/zh/guides/seedance-2-video)。`duration` 只控制生成输出时长，不单独限制参考视频输入时长。 对于 `grok-imagine-video`，reference-to-video 最多接受 7 个图片参考（`reference_images` 或 `image_urls`），且 `duration` 最高为 10 秒。不要把参考图片与 `image_url` / `image` 首帧输入混用。`grok-imagine-video-1.5-preview` 仅支持图生视频。
 
 ```python
 response = requests.post(
@@ -331,18 +399,18 @@ response = requests.post(
     "https://api.aisonar.dev/v1/videos/generations",
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
-        "model": "topaz-video-upscale",
+        "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Upscale the clip while preserving the original motion.",
-        "resolution": "1080p"
+        "prompt": "Enhance the clip while preserving the original motion.",
+        "resolution": "720p"
     }
 )
 ```
 
 ## 动作控制
 
-当模型同时需要主体图片和动作参考视频时，请使用 `operation=motion-control`。AI Sonar 会把公开的 `image_url` + `video_url` 请求形态映射到上游动作控制契约。
+当模型同时需要主体图片和动作参考视频时，请使用 `operation=motion-control`。AI Sonar 会把公开的 `image_url` + `video_url` 请求形态转换成该模型的 motion-control 请求格式。
 
 ```python
 response = requests.post(
@@ -359,90 +427,16 @@ response = requests.post(
 )
 ```
 
-## Audio-to-Video 与 Video Extension 当前可用性
+## 模型发现
 
-AI Sonar 的公开契约接受 `audio-to-video` 与 `video-extension` 这两个操作值，用于模型特定流程；但在当前这版文档对应的“通用启用”公开视频模型清单中，并没有一个广泛启用的公开模型对外明确提供这两项能力。接入前请先通过 [Models API](/zh/api-reference/models/list-models) 或 [模型页面](https://aisonar.dev/models) 确认实时可用性。
+公开视频模型库存和支持的操作会持续变化。接入某个模型特定流程前，请以 [Models API](/zh/api-reference/models/list-models) 确认当前支持情况：
 
-## 当前启用的公开视频模型
+```bash
+curl "https://api.aisonar.dev/v1/models?recommended_for=video" \
+  -H "Authorization: Bearer sk-your-api-key"
 
-以下列表与当前文档构建时的启用视频模型总表对齐。若要获取最新状态，请优先查询 [Models API](/zh/api-reference/models/list-models)。
+curl "https://api.aisonar.dev/v1/models/veo3.1" \
+  -H "Authorization: Bearer sk-your-api-key"
+```
 
-### OpenAI
-
-| 模型 | 公开操作 |
-|-------|----------|
-
-### Kuaishou
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `kling-3.0-motion-control` | 动作控制 |
-| `kling-3.0-video` | 文生视频、图生视频、首尾帧视频、元素引用 |
-| `kling-v2.5-turbo-pro` | 文生视频、图生视频、首尾帧视频 |
-| `kling-v2.5-turbo-std` | 文生视频、图生视频 |
-| `kling-v2.6-pro` | 文生视频、图生视频、首尾帧视频 |
-| `kling-v2.6-std` | 文生视频、图生视频 |
-| `kling-v3.0-pro` | 文生视频、图生视频、首尾帧视频 |
-| `kling-v3.0-std` | 文生视频、图生视频、首尾帧视频 |
-| `kling-video-o1-pro` | 文生视频、图生视频、参考图生视频、首尾帧视频、视频转视频 |
-| `kling-video-o1-std` | 文生视频、图生视频、参考图生视频、首尾帧视频、视频转视频 |
-
-### Google
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `veo3` | 文生视频、图生视频 |
-| `veo3-fast` | 文生视频、图生视频 |
-| `veo3-pro` | 文生视频、图生视频 |
-| `veo3.1` | 文生视频、图生视频、参考图生视频、首尾帧视频 |
-| `veo3.1-fast` | 文生视频、图生视频、参考图生视频、首尾帧视频 |
-| `veo3.1-pro` | 文生视频、图生视频、首尾帧视频 |
-
-### ByteDance
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `seedance-1.5-pro` | 文生视频、图生视频 |
-
-### MiniMax
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `hailuo-2.3-fast` | 图生视频 |
-| `hailuo-2.3-pro` | 文生视频、图生视频 |
-| `hailuo-2.3-standard` | 文生视频、图生视频 |
-
-### Alibaba
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `wan-2.2-plus` | 文生视频、图生视频 |
-| `wan-2.5` | 文生视频、图生视频 |
-| `wan-2.6` | 文生视频、图生视频、参考图生视频 |
-
-### Shengshu
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `viduq2` | 文生视频、参考图生视频 |
-| `viduq2-pro` | 图生视频、参考图生视频、首尾帧视频 |
-| `viduq2-pro-fast` | 图生视频、首尾帧视频 |
-| `viduq2-turbo` | 图生视频、首尾帧视频 |
-| `viduq3-pro` | 文生视频、图生视频、首尾帧视频 |
-| `viduq3-turbo` | 文生视频、图生视频、首尾帧视频 |
-
-### xAI
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `grok-imagine-video` | 文生视频、图生视频、参考图生视频、视频转视频 |
-| `grok-imagine-video-1.5-preview` | 图生视频 |
-| `grok-imagine-image-to-video` | 图生视频 |
-| `grok-imagine-text-to-video` | 文生视频 |
-| `grok-imagine-upscale` | 视频转视频 |
-
-### 其他
-
-| 模型 | 公开操作 |
-|-------|----------|
-| `topaz-video-upscale` | 视频转视频 |
+依赖模型特定操作或字段前，请读取单模型详情响应。`audio-to-video`、`video-extension` 等操作属于模型特定能力；请在那里确认实时可用性，不要依赖本页中的静态示例。

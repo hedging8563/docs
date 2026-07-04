@@ -15,7 +15,7 @@ Creates a new `type=user` API key in the organization associated with the curren
 | `name` | string | required, default `Default Key`, length `1-50` | Display name, trimmed server-side |
 | `limitAmount` | number \| null | min `0`, input max `1000000` | `null` or omitted = unlimited, `0` = zero quota. Positive values are normalized to a stored cap that cannot exceed `100000` USD equivalent. |
 | `limitCurrency` | enum | default `USD` | USD only. Sending `CNY` returns `400 currency_retired`. |
-| `models` | string[] | default `[]` | Optional logical model allowlist |
+| `models` | string[] | default `[]` | Optional model allowlist |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` means no expiry |
 
 ## Notes
@@ -45,3 +45,23 @@ curl -X POST "https://api.aisonar.dev/v1/management/api-keys" \
 ## Request / Response
 
 Use the interactive OpenAPI panel above for the exact schema and response fields.
+
+## Response example
+
+<ResponseExample>
+```json 200 OK
+{
+  "id": "ak_abc123",
+  "object": "management.api_key",
+  "name": "Production app",
+  "status": "active",
+  "key": "sk-live-redacted",
+  "created_at": "2026-06-27T00:00:00.000Z"
+}
+```
+</ResponseExample>
+
+## Important fields
+
+<ResponseField name="key" type="string">Secret value. Store it immediately and never expose it to clients.</ResponseField>
+<ResponseField name="id" type="string">Identifier used for follow-up calls and support.</ResponseField>

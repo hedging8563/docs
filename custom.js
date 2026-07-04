@@ -5,7 +5,7 @@
 (function() {
   'use strict';
 
-  const AUTH_STORAGE_KEY = 'aisonar-api-key';
+  const AUTH_STORAGE_KEY = 'tokenlab-api-key';
   const DOC_LOCALES = new Set([
     'en', 'zh', 'zh-Hant', 'ja', 'ko', 'de', 'fr', 'es', 'pt', 'ar', 'vi', 'id', 'tr'
   ]);
@@ -116,7 +116,7 @@
     const savedKey = getSavedApiKey();
 
     // 容器
-    const container = createElement('div', { id: 'aisonar-auth-input' });
+    const container = createElement('div', { id: 'tokenlab-auth-input' });
 
     // 内部包装
     const wrapper = createElement('div', {
@@ -156,7 +156,7 @@
         'aria-hidden': 'true'
       }, ['API']),
       createElement('label', {
-        for: 'aisonar-api-key-input',
+        for: 'tokenlab-api-key-input',
         style: { fontWeight: '600', fontSize: '14px', color: '#0f172a' }
       }, ['Authorization']),
       createElement('span', {
@@ -184,7 +184,7 @@
     // API Key 输入框
     const input = createElement('input', {
       type: 'password',
-      id: 'aisonar-api-key-input',
+      id: 'tokenlab-api-key-input',
       placeholder: 'sk-your-api-key',
       value: savedKey,
       style: {
@@ -217,7 +217,7 @@
     // 显示/隐藏按钮
     const toggleBtn = createElement('button', {
       type: 'button',
-      id: 'aisonar-toggle-visibility',
+      id: 'tokenlab-toggle-visibility',
       title: 'Show/Hide API Key',
       'aria-label': 'Show API key',
       style: {
@@ -288,7 +288,7 @@
   // 注入 Auth 输入框到 Playground
   function injectAuthInput() {
     // 检查是否已注入
-    if (document.getElementById('aisonar-auth-input')) {
+    if (document.getElementById('tokenlab-auth-input')) {
       return;
     }
 
@@ -346,14 +346,14 @@
 
   // 拦截 Playground 的 fetch 请求，注入 Authorization header
   function interceptPlaygroundRequests() {
-    if (window._aisonarFetchIntercepted) return;
-    window._aisonarFetchIntercepted = true;
+    if (window._tokenlabFetchIntercepted) return;
+    window._tokenlabFetchIntercepted = true;
 
     const originalFetch = window.fetch;
 
     window.fetch = function(url, options) {
       options = options || {};
-      const apiKey = document.getElementById('aisonar-api-key-input');
+      const apiKey = document.getElementById('tokenlab-api-key-input');
       const apiKeyValue = apiKey ? apiKey.value : '';
 
       // 检查是否是发往 AI Sonar API 的请求
@@ -414,7 +414,7 @@
       if (window.location.pathname !== lastPath) {
         lastPath = window.location.pathname;
         // 移除旧的注入
-        const oldInput = document.getElementById('aisonar-auth-input');
+        const oldInput = document.getElementById('tokenlab-auth-input');
         if (oldInput) oldInput.remove();
         // 延迟重新注入
         setTimeout(injectAuthInput, 500);

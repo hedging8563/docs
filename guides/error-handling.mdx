@@ -101,7 +101,7 @@ except APIStatusError as e:
 |------|-------------|
 | `invalid_request_error` | Request parameters are invalid |
 | `context_length_exceeded` | Input too long for model |
-| `model_not_found` | Requested model is not available in the current public contract |
+| `model_not_found` | Requested model is not available in the current model details |
 
 ```json
 {
@@ -117,7 +117,7 @@ except APIStatusError as e:
 }
 ```
 
-Public routes do not distinguish typo, hidden, deferred, or non-public model states in the response body. If a model is not currently available through the public contract, AI Sonar returns `model_not_found`.
+Public routes do not distinguish typo, hidden, deferred, or non-public model states in the response body. If a model is not currently available through the model details, AI Sonar returns `model_not_found`.
 
 ### Rate Limit Errors (429)
 
@@ -126,12 +126,12 @@ When you exceed rate limits:
 ```json
 {
   "error": {
-    "message": "Rate limit: 60 rpm exceeded",
+    "message": "Rate limit: 1000 rpm exceeded",
     "type": "rate_limit_exceeded",
     "code": "rate_limit_exceeded",
     "retryable": true,
     "retry_after": 8,
-    "hint": "Rate limited. Retry after 8s. Current limit: 60/min for user role."
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
   }
 }
 ```

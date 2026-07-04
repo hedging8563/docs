@@ -10,8 +10,8 @@ description: "返回当前管理令牌所属组织的余额汇总。"
 
 ## 注意事项
 
-- 金额真值字段以 USD 返回：`balance`、`total_recharge`、`total_used`。
-- `preferred_currency` 表示组织在 Dashboard 中的展示偏好，不会改变 USD 真值字段。
+- 金额字段以 USD 返回：`balance`、`total_recharge`、`total_used`。
+- `preferred_currency` 表示组织在 Dashboard 中的展示偏好，不会改变 USD 字段。
 
 ## 示例
 
@@ -25,3 +25,23 @@ curl -X GET "https://api.aisonar.dev/v1/management/balance" \
 ## 请求 / 响应
 
 使用上面的交互式 OpenAPI 面板获取确切的模式。
+
+## 响应示例
+
+<ResponseExample>
+```json 200 OK
+{
+  "object": "management.balance",
+  "currency": "USD",
+  "available_balance": "42.50",
+  "pending_usage": "1.25",
+  "updated_at": "2026-06-27T00:00:00.000Z"
+}
+```
+</ResponseExample>
+
+## 重要字段
+
+<ResponseField name="available_balance" type="string">用于计费对账的 USD 十进制字符串。</ResponseField>
+<ResponseField name="pending_usage" type="string">用于计费对账的 USD 十进制字符串。</ResponseField>
+<ResponseField name="updated_at" type="string">API 返回的 ISO 时间或 Unix 时间戳。</ResponseField>

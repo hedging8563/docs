@@ -1,14 +1,14 @@
 ---
 title: "LiteLLM"
-description: "将 AI Sonar 与 LiteLLM 结合使用，可作为上游提供方，也可作为内部网关层"
+description: "将 AI Sonar 与 LiteLLM 结合使用，可作为 OpenAI 兼容端点或团队网关的一部分"
 ---
 
 ## 概述
 
 LiteLLM 与 AI Sonar 常见有两种结合方式：
 
-- 把 AI Sonar 作为 LiteLLM 背后的 **OpenAI 兼容 上游**
-- 在 AI Sonar 前面再放一层 LiteLLM，统一做虚拟 key、路由策略或额外观测
+- 把 AI Sonar 作为 LiteLLM 背后的 **OpenAI 兼容端点**
+- 在 AI Sonar 前面再放一层 LiteLLM，统一做虚拟 key、模型选择策略或额外观测
 
 对 AI Sonar 而言，最干净的默认路径是使用 LiteLLM 的 **custom OpenAI / OpenAI 兼容** 配置，并把 `api_base` 指向 `https://api.aisonar.dev/v1`。
 
@@ -19,7 +19,7 @@ LiteLLM 与 AI Sonar 常见有两种结合方式：
 <Note>
 **类型**: 框架或平台
 
-**主要路径**: OpenAI 兼容 上游
+**主要路径**: OpenAI 兼容端点
 
 **支持级别**: 支持路径
 </Note>
@@ -36,13 +36,13 @@ pip install 'litellm[proxy]'
 
 ```yaml
 model_list:
-  - model_name: aisonar-gpt-5.4
+  - model_name: tokenlab-gpt-5.4
     litellm_params:
       model: custom_openai/gpt-5.4
       api_base: https://api.aisonar.dev/v1
       api_key: os.environ/OPENAI_API_KEY
 
-  - model_name: aisonar-claude-sonnet
+  - model_name: tokenlab-claude-sonnet
     litellm_params:
       model: custom_openai/claude-sonnet-4-6
       api_base: https://api.aisonar.dev/v1
@@ -67,7 +67,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="aisonar-gpt-5.4",
+    model="tokenlab-gpt-5.4",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
@@ -93,11 +93,11 @@ response = litellm.completion(
 
 <AccordionGroup>
   <Accordion title="对 AI Sonar 优先使用 custom_openai">
-    除非你有非常明确的理由去构造更复杂的提供方映射，否则请把 AI Sonar 视为 OpenAI 兼容 上游。
+    除非你有非常明确的理由去构造更复杂的提供方映射，否则请把 AI Sonar 视为 OpenAI 兼容端点。
   </Accordion>
 
   <Accordion title="只在确实需要额外网关层时再用 LiteLLM">
-    如果你的平台自己还需要 virtual keys、额外路由策略或集中日志，LiteLLM 放在 AI Sonar 前面是有价值的。
+    如果你的平台自己还需要 virtual keys、模型选择策略或集中日志，LiteLLM 放在 AI Sonar 前面是有价值的。
   </Accordion>
 
   <Accordion title="原生能力不要过度承诺">

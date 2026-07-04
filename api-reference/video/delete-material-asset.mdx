@@ -1,0 +1,24 @@
+---
+title: "Delete Material Asset"
+openapi: "DELETE /v1/videos/assets/{assetId}"
+description: "Deletes a Seedance material asset owned by the current organization."
+---
+
+Delete one material asset. This does not delete the containing material group. After deletion, the asset ID can no longer be used as `material_asset_id`.
+
+## Example Request
+
+```bash
+curl https://api.aisonar.dev/v1/videos/assets/seedance_asset_123 \
+  -X DELETE \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+## Example Response
+
+```json
+{
+  "deleted": true,
+  "id": "seedance_asset_123"
+}
+```

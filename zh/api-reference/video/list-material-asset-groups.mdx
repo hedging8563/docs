@@ -1,0 +1,34 @@
+---
+title: "列出素材资产组"
+openapi: "GET /v1/videos/assets/groups"
+description: "列出当前组织拥有的 Seedance 素材组。"
+---
+
+列出经过身份验证的组织所拥有的素材组。通过 `library_type` 和 `status` 进行筛选，以区分虚拟人（virtual-avatar）组和真人（real-person）组。
+
+在上传素材时使用返回的 `group_id`。在视频生成过程中，请勿将 `group_id` 作为 `material_asset_id` 传递；生成操作需要的是素材资产的 `id`。
+
+## 请求示例
+
+```bash
+curl "https://api.aisonar.dev/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+## 响应示例
+
+```json
+{
+  "groups": [
+    {
+      "id": "seedance_group_virtual_123",
+      "object": "seedance.material_asset_group",
+      "library_type": "aigc_avatar",
+      "group_name": "Product references",
+      "status": "ACTIVE",
+      "created_at": 1782998400000
+    }
+  ],
+  "next_page_token": null
+}
+```

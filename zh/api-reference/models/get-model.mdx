@@ -14,6 +14,7 @@ description: "检索一个模型实例"
 
 <ResponseField name="id" type="string">
   模型标识符。
+它还包含 `lifecycle`、`commercial` 和 `badges`，用于说明弃用/退役状态、用户收费策略和展示标签。
 </ResponseField>
 
 <ResponseField name="object" type="string">
@@ -28,8 +29,8 @@ description: "检索一个模型实例"
   模型提供方。
 </ResponseField>
 
-<ResponseField name="aisonar" type="object">
-  AI Sonar 专属的公开元数据。详情路由可包含 `category`、`pricing_unit`、`capability_flags`、`supported_operations`、`pricing_provenance`、`public_contract_summary`、完整的 `public_contract`，以及非聊天推荐快照的场景级 `agent_preferences`。
+<ResponseField name="tokenlab" type="object">
+  AI Sonar 专属的公开元数据。详情路由可包含 `category`、`pricing_unit`、`capability_flags`、`supported_operations`、`pricing_provenance`、`request_format_summary`、完整的 `request_format_details`，以及非聊天推荐快照的场景级 `agent_preferences`。
 </ResponseField>
 
 <RequestExample>
@@ -116,7 +117,7 @@ echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
 
 ## 非聊天推荐元数据
 
-对于非聊天模型，详情路由还会返回 `aisonar.agent_preferences.<scene>`。
+对于非聊天模型，详情路由还会返回 `tokenlab.agent_preferences.<scene>`。
 
 可用于查看：
 
@@ -126,17 +127,17 @@ echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
 - `status`
 - `updated_at`
 
-公开响应会刻意将 `basis.channel_id` 和 `basis.physical_model` 保持为 `null`，这样 agent 可以消费推荐信号，但不会看到内部路由标识符。
+公开响应会用 `basis.source` 概括推荐依据，不会暴露路由标识符。
 
 ## 公开详情元数据
 
 与 `GET /v1/models` 相比，详情路由还可以额外返回：
 
-- `aisonar.capability_flags`
-- `aisonar.supported_operations`
-- `aisonar.pricing_provenance`
-- `aisonar.public_contract_summary`
-- `aisonar.public_contract`
+- `tokenlab.capability_flags`
+- `tokenlab.supported_operations`
+- `tokenlab.pricing_provenance`
+- `tokenlab.request_format_summary`
+- `tokenlab.request_format_details`
 
 ## 错误处理
 

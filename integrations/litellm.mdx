@@ -1,14 +1,14 @@
 ---
 title: "LiteLLM"
-description: "Use AI Sonar with LiteLLM as either an upstream provider or an internal gateway layer"
+description: "Use AI Sonar with LiteLLM as an OpenAI-compatible endpoint or as part of your team gateway"
 ---
 
 ## Overview
 
 LiteLLM fits AI Sonar in two common ways:
 
-- use AI Sonar as an **OpenAI-compatible upstream** behind LiteLLM
-- put LiteLLM in front of AI Sonar when your team wants one more internal gateway layer for routing, virtual keys, or centralized observability
+- use AI Sonar as an **OpenAI-compatible endpoint** behind LiteLLM
+- put LiteLLM in front of AI Sonar when your team wants team-managed virtual keys, model-selection policy, or centralized observability
 
 For AI Sonar, the cleanest default is LiteLLM's **custom OpenAI / OpenAI-compatible** path pointed at `https://api.aisonar.dev/v1`.
 
@@ -19,7 +19,7 @@ If you specifically need Claude-native or Gemini-native request shapes, prefer A
 <Note>
 **Type**: Framework or Platform
 
-**Primary Path**: OpenAI-compatible upstream
+**Primary Path**: OpenAI-compatible endpoint
 
 **Support Confidence**: Supported path
 </Note>
@@ -36,13 +36,13 @@ Create a `litellm-config.yaml` like this:
 
 ```yaml
 model_list:
-  - model_name: aisonar-gpt-5.4
+  - model_name: tokenlab-gpt-5.4
     litellm_params:
       model: custom_openai/gpt-5.4
       api_base: https://api.aisonar.dev/v1
       api_key: os.environ/OPENAI_API_KEY
 
-  - model_name: aisonar-claude-sonnet
+  - model_name: tokenlab-claude-sonnet
     litellm_params:
       model: custom_openai/claude-sonnet-4-6
       api_base: https://api.aisonar.dev/v1
@@ -67,7 +67,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="aisonar-gpt-5.4",
+    model="tokenlab-gpt-5.4",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
@@ -93,11 +93,11 @@ response = litellm.completion(
 
 <AccordionGroup>
   <Accordion title="Prefer custom_openai for AI Sonar">
-    Treat AI Sonar as an OpenAI-compatible upstream unless you have a very specific reason to build a more complex provider mapping.
+    Treat AI Sonar as an OpenAI-compatible endpoint unless you have a very specific reason to build a more complex provider mapping.
   </Accordion>
 
   <Accordion title="Use LiteLLM when you need one more gateway layer">
-    LiteLLM makes sense when your own platform wants virtual keys, extra routing policy, or centralized logs in front of AI Sonar.
+    LiteLLM makes sense when your own platform wants virtual keys, extra model-selection policy, or centralized logs in front of AI Sonar.
   </Accordion>
 
   <Accordion title="Keep native-provider expectations realistic">

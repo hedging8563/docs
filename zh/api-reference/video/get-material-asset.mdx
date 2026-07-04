@@ -1,0 +1,36 @@
+---
+title: "获取素材资源"
+openapi: "GET /v1/videos/assets/{assetId}"
+description: "通过 AI Sonar 素材资源 ID 获取单个 Seedance 素材资源。"
+---
+
+获取单个素材资源并检查其处理状态。仅当 `ready` 为 `true` 且 `status` 为 `ACTIVE` 时，该资源才能用于视频生成。
+
+如果视频生成返回 `Seedance material asset not found or not accessible`，请核实您传入的是该素材资源的 `id`，而非素材的 `group_id`。
+
+## 请求示例
+
+```bash
+curl https://api.aisonar.dev/v1/videos/assets/seedance_asset_123 \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+## 响应示例
+
+```json
+{
+  "id": "seedance_asset_123",
+  "object": "seedance.material_asset",
+  "group_id": "seedance_group_virtual_123",
+  "library_type": "aigc_avatar",
+  "asset_name": "Front view",
+  "asset_type": "Image",
+  "asset_url": "https://example.com/reference.png",
+  "cover_url": null,
+  "status": "ACTIVE",
+  "ready": true,
+  "error_message": null,
+  "metadata": null,
+  "created_at": 1782998400000
+}
+```

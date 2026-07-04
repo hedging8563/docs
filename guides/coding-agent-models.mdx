@@ -10,27 +10,30 @@ description: "Choose the right model for each coding task — comparison table, 
 | `claude-opus-4-6` | Moderate | Excellent | $$$$ | 200K | Architecture, complex refactoring |
 | `gpt-5.4` | Moderate | Excellent | $$$$ | 200K | Complex reasoning, planning |
 | `claude-sonnet-4-6` | Fast | Very Good | $$$ | 200K | General coding, reviews |
-| `gemini-3-pro-preview` | Fast | Very Good | $$$ | 1M | Large codebase analysis |
+| `gemini-3.1-pro-preview` | Fast | Very Good | $$$ | 1M | Large codebase analysis |
 | `gpt-5-mini` | Very Fast | Good | $$ | 128K | Quick edits, completions |
-| `gemini-3-flash-preview` | Very Fast | Good | $$ | 1M | Fast iteration, search |
-| `deepseek-r1` | Moderate | Very Good | $ | 64K | Reasoning-heavy tasks |
-| `deepseek-v3.2` | Fast | Good | $ | 128K | Bulk generation, boilerplate |
+| `gemini-3.5-flash` | Very Fast | Good | $$ | 1M | Fast iteration, search |
+| `deepseek-v4-pro` | Moderate | Very Good | $ | 1M | Reasoning-heavy tasks |
+| `deepseek-v4-flash` | Fast | Good | $ | 1M | Bulk generation, boilerplate |
+
+
+For the newer coding-oriented pool, also consider `qwen-long-latest` for very large repositories, `minimax-m3` for large-context agent work, `kimi-k2.7-code-highspeed` for fast coding loops, and `deepseek-v4-pro` / `deepseek-v4-flash`, `glm-5.2`, `step-3.7-flash`, and `mimo-v2.5-pro` for OpenAI-compatible chat requests.
 
 ## Task-Specific Recommendations
 
 <AccordionGroup>
   <Accordion title="Code Generation / Scaffolding">
-    **Recommended**: `claude-sonnet-4-6`, `gemini-3-pro-preview`
+    **Recommended**: `claude-sonnet-4-6`, `gemini-3.1-pro-preview`
 
     These models produce clean, well-structured code with good naming conventions. For complex multi-file scaffolding, consider `claude-opus-4-6`.
 
-    Budget alternative: `deepseek-v3.2` handles boilerplate well at a fraction of the cost.
+    Budget alternative: `deepseek-v4-flash` handles boilerplate well at a fraction of the cost.
   </Accordion>
 
   <Accordion title="Code Review / Refactoring">
-    **Recommended**: `claude-sonnet-4-6`, `deepseek-r1`
+    **Recommended**: `claude-sonnet-4-6`, `deepseek-v4-pro`
 
-    Code review benefits from reasoning ability. `deepseek-r1` is particularly cost-effective here — its chain-of-thought approach catches subtle issues.
+    Code review benefits from reasoning ability. `deepseek-v4-pro` is particularly cost-effective here — its chain-of-thought approach catches subtle issues.
 
     For security-focused reviews: `claude-opus-4-6` or `gpt-5.4`.
   </Accordion>
@@ -48,40 +51,40 @@ description: "Choose the right model for each coding task — comparison table, 
   </Accordion>
 
   <Accordion title="Quick Edits / Tab Completion">
-    **Recommended**: `gpt-5-mini`, `gemini-3-flash-preview`
+    **Recommended**: `gpt-5-mini`, `gemini-3.5-flash`
 
     Speed is critical for interactive use. Budget models with fast response times provide the best experience. Don't waste premium tokens on autocomplete.
   </Accordion>
 </AccordionGroup>
 
-## How AI Sonar Routing Works
+## Provider Selection
 
-AI Sonar routes your requests to the best available provider automatically.
+AI Sonar selects an available provider for the requested model automatically.
 
-### Routing Strategies
+### Selection Strategies
 
 | Strategy | Behavior | Best For |
 |----------|----------|----------|
-| **PRIORITY** | Routes to highest-priority available provider | Reliability-focused |
-| **COST** | Routes to cheapest available provider | Cost-focused |
+| **PRIORITY** | Uses the highest-priority available provider | Reliability-focused |
+| **COST** | Uses the lowest-cost available provider | Cost-focused |
 
 You can set your preferred strategy in the dashboard.
 
-### Automatic Fallback
+### Automatic Retry
 
-If a provider is unavailable or returns an error, AI Sonar automatically retries with the next provider:
+If a provider is unavailable or returns an error, AI Sonar automatically retries with another available provider:
 
 ```
 Request: claude-sonnet-4-6
   → Provider A (primary): 503 error
-  → Provider B (fallback): ✓ Success
+  → Provider B (retry): ✓ Success
 ```
 
 This happens transparently — your coding agent sees a normal response.
 
-### Native Format Routing
+### Native API Formats
 
-When the selected model and routed channel support it, AI Sonar can route requests through the model family's native API format for better compatibility:
+When the selected model supports a native API format, AI Sonar can use that format for better compatibility:
 
 | Model Family | API Format | Base URL |
 |-------------|------------|----------|
@@ -130,7 +133,7 @@ Claude Code is a strong native Anthropic path. Gemini-native APIs exist too, but
     export GOOGLE_GEMINI_BASE_URL="https://api.aisonar.dev"
     ```
 
-    Treat this as best-effort compatibility rather than a stable upstream contract.
+    Treat this as best-effort compatibility rather than an official Gemini CLI integration.
 
     [Full guide →](/integrations/gemini-cli)
   </Accordion>

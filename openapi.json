@@ -4,20 +4,12 @@
     "title": "AI Sonar AI Gateway",
     "description": "Organization balance, API key management, and key-level usage/billing via management token",
     "version": "1.0.0",
-    "termsOfService": "https://aisonar.dev/tos",
-    "contact": {
-      "name": "Technical Support",
-      "email": "support@aisonar.dev"
-    }
+    "termsOfService": "https://aisonar.dev/tos"
   },
   "servers": [
     {
       "url": "https://api.aisonar.dev",
       "description": "Production server"
-    },
-    {
-      "url": "http://localhost:3001",
-      "description": "Local development (API Gateway)"
     }
   ],
   "tags": [
@@ -340,19 +332,19 @@
                 "basic": {
                   "summary": "Basic image generation",
                   "value": {
-                    "model": "dall-e-3",
-                    "prompt": "A white siamese cat",
-                    "size": "1024x1024"
+                    "model": "gpt-image-2",
+                    "prompt": "A white cat sitting on a rainy windowsill",
+                    "size": "1024x1024",
+                    "quality": "auto"
                   }
                 },
-                "hd": {
-                  "summary": "HD quality image",
+                "high_quality": {
+                  "summary": "High quality image",
                   "value": {
-                    "model": "dall-e-3",
-                    "prompt": "A beautiful sunset over mountains",
-                    "size": "1792x1024",
-                    "quality": "hd",
-                    "style": "vivid"
+                    "model": "gpt-image-2",
+                    "prompt": "A cinematic product photo of matte black headphones on a glass desk",
+                    "size": "1536x1024",
+                    "quality": "high"
                   }
                 }
               }
@@ -768,6 +760,648 @@
         }
       }
     },
+    "/v1/videos/assets": {
+      "post": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Create Seedance material asset",
+        "description": "Uploads one Seedance material asset URL into a AI Sonar material group. Real-person assets require the AI Sonar group_id returned by the real-person verification bind flow.",
+        "operationId": "createSeedanceMaterialAsset",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedanceMaterialAssetCreateRequest"
+              },
+              "examples": {
+                "virtual_avatar_asset": {
+                  "summary": "Create a virtual-avatar material asset",
+                  "value": {
+                    "asset_url": "https://example.com/reference.png",
+                    "asset_name": "Front view",
+                    "asset_type": "Image",
+                    "library_type": "aigc_avatar",
+                    "group_id": "seedance_group_virtual_123"
+                  }
+                },
+                "real_person_asset": {
+                  "summary": "Create a real-person material asset",
+                  "value": {
+                    "asset_url": "https://example.com/verified-person-closeup.jpg",
+                    "asset_name": "Creator A close-up",
+                    "asset_type": "Image",
+                    "library_type": "liveness_face",
+                    "group_id": "seedance_group_real_123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Material asset created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAsset"
+                },
+                "examples": {
+                  "asset_created": {
+                    "summary": "Material asset accepted for processing",
+                    "value": {
+                      "id": "seedance_asset_123",
+                      "object": "seedance.material_asset",
+                      "group_id": "seedance_group_virtual_123",
+                      "library_type": "aigc_avatar",
+                      "asset_name": "Front view",
+                      "asset_type": "Image",
+                      "asset_url": "https://example.com/reference.png",
+                      "cover_url": null,
+                      "status": "PROCESSING",
+                      "ready": false,
+                      "error_message": null,
+                      "metadata": null,
+                      "created_at": 1782998400000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Material asset mapping conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "List Seedance material assets",
+        "description": "Lists Seedance material assets owned by the authenticated organization. Use library_type, group_id, and status filters to find assets for a generation workflow.",
+        "operationId": "listSeedanceMaterialAssets",
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by AI Sonar material asset group id."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROCESSING",
+                "ACTIVE",
+                "FAILED",
+                "DELETED"
+              ]
+            }
+          },
+          {
+            "name": "library_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "aigc_avatar",
+                "liveness_face"
+              ]
+            },
+            "description": "Filter by material library class."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Material assets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetList"
+                },
+                "examples": {
+                  "assets": {
+                    "summary": "Material assets",
+                    "value": {
+                      "assets": [
+                        {
+                          "id": "seedance_asset_123",
+                          "object": "seedance.material_asset",
+                          "group_id": "seedance_group_virtual_123",
+                          "library_type": "aigc_avatar",
+                          "asset_name": "Front view",
+                          "asset_type": "Image",
+                          "asset_url": "https://example.com/reference.png",
+                          "cover_url": null,
+                          "status": "ACTIVE",
+                          "ready": true,
+                          "error_message": null,
+                          "metadata": null,
+                          "created_at": 1782998400000
+                        }
+                      ],
+                      "next_page_token": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/v1/videos/assets/visual-validation-sessions": {
+      "post": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Create Seedance real-person verification session",
+        "description": "Creates a AI Sonar real-person material verification H5 session. The response contains only AI Sonar session fields. The session and H5 link are valid for 120 seconds; the binding token is delivered through the AI Sonar callback redirect after the H5 flow completes.",
+        "operationId": "createSeedanceVisualValidationSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedanceVisualValidationSessionCreateRequest"
+              },
+              "examples": {
+                "create_session": {
+                  "summary": "Create a verification session",
+                  "value": {
+                    "callback_url": "https://yourapp.example.com/seedance/callback",
+                    "language": "en"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Real-person verification session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceVisualValidationSession"
+                },
+                "examples": {
+                  "session_created": {
+                    "summary": "Verification session created",
+                    "value": {
+                      "object": "seedance.visual_validation_session",
+                      "session_id": "svv_abc123",
+                      "h5_link": "https://verify.example.com/h5?lng=en",
+                      "callback_url": "https://yourapp.example.com/seedance/callback",
+                      "expires_in": 120,
+                      "language": "en"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "List Seedance real-person verification history",
+        "description": "Lists AI Sonar real-person material verification history for the authenticated organization. The response contains only AI Sonar IDs and session status fields.",
+        "operationId": "listSeedanceVisualValidationHistory",
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": "Maximum number of history records to return."
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Pagination token from a previous response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Real-person verification history list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceVisualValidationHistoryList"
+                },
+                "examples": {
+                  "verification_history": {
+                    "summary": "Verification session history",
+                    "value": {
+                      "sessions": [
+                        {
+                          "object": "seedance.visual_validation_session_history",
+                          "session_id": "svv_abc123",
+                          "callback_url": "https://yourapp.example.com/seedance/callback",
+                          "language": "en",
+                          "status": "bound",
+                          "verification_status": "succeeded",
+                          "result_code": "10000",
+                          "group_id": "seedance_group_real_123",
+                          "group_name": "Creator A",
+                          "error_message": null,
+                          "created_at": 1782998400000,
+                          "expires_at": 1782998520000,
+                          "callback_received_at": 1782998450000,
+                          "bound_at": 1782998460000
+                        }
+                      ],
+                      "next_page_token": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/videos/assets/visual-validation-results": {
+      "post": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Bind Seedance real-person verification result",
+        "description": "Binds a successful AI Sonar real-person verification session to a AI Sonar real-person material group. The request must include session_id and verification_token from the AI Sonar callback redirect.",
+        "operationId": "bindSeedanceVisualValidationResult",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedanceVisualValidationResultBindRequest"
+              },
+              "examples": {
+                "bind_result": {
+                  "summary": "Bind a successful verification result",
+                  "value": {
+                    "session_id": "svv_abc123",
+                    "verification_token": "svvt_def456",
+                    "group_name": "Creator A"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Real-person material group bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceVisualValidationResult"
+                },
+                "examples": {
+                  "bound_group": {
+                    "summary": "Real-person material group bound",
+                    "value": {
+                      "object": "seedance.visual_validation_result",
+                      "group_id": "seedance_group_real_123",
+                      "material_group": {
+                        "id": "seedance_group_real_123",
+                        "library_type": "liveness_face",
+                        "status": "ACTIVE",
+                        "group_name": "Creator A"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Material group mapping conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/videos/assets/{assetId}": {
+      "get": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Get Seedance material asset",
+        "description": "Retrieves one AI Sonar Seedance material asset and its asynchronous ingestion status.",
+        "operationId": "getSeedanceMaterialAsset",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "seedance_asset_123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Material asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAsset"
+                },
+                "examples": {
+                  "asset": {
+                    "summary": "Material asset",
+                    "value": {
+                      "id": "seedance_asset_123",
+                      "object": "seedance.material_asset",
+                      "group_id": "seedance_group_virtual_123",
+                      "library_type": "aigc_avatar",
+                      "asset_name": "Front view",
+                      "asset_type": "Image",
+                      "asset_url": "https://example.com/reference.png",
+                      "cover_url": null,
+                      "status": "ACTIVE",
+                      "ready": true,
+                      "error_message": null,
+                      "metadata": null,
+                      "created_at": 1782998400000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Video"
+        ],
+        "operationId": "updateSeedanceMaterialAsset",
+        "summary": "Update Seedance material asset",
+        "description": "Updates a Seedance material asset owned by the authenticated organization.",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "description": "AI Sonar material asset ID.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "seedance_asset_123"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedanceMaterialAssetUpdateRequest"
+              },
+              "examples": {
+                "update_asset": {
+                  "summary": "Update asset metadata",
+                  "value": {
+                    "asset_name": "Front view approved",
+                    "metadata": {
+                      "approved_by": "creative-team"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Material asset updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAsset"
+                },
+                "examples": {
+                  "asset_updated": {
+                    "summary": "Material asset updated",
+                    "value": {
+                      "id": "seedance_asset_123",
+                      "object": "seedance.material_asset",
+                      "group_id": "seedance_group_virtual_123",
+                      "library_type": "aigc_avatar",
+                      "asset_name": "Front view approved",
+                      "asset_type": "Image",
+                      "asset_url": "https://example.com/reference.png",
+                      "cover_url": null,
+                      "status": "ACTIVE",
+                      "ready": true,
+                      "error_message": null,
+                      "metadata": {
+                        "approved_by": "creative-team"
+                      },
+                      "created_at": 1782998400000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Delete Seedance material asset",
+        "description": "Deletes a Seedance material asset owned by the authenticated organization.",
+        "operationId": "deleteSeedanceMaterialAsset",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "seedance_asset_123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Material asset deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetDeleteResponse"
+                },
+                "examples": {
+                  "asset_deleted": {
+                    "summary": "Material asset deleted",
+                    "value": {
+                      "deleted": true,
+                      "id": "seedance_asset_123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      }
+    },
     "/v1/tasks/{id}": {
       "get": {
         "tags": [
@@ -821,7 +1455,7 @@
           "Tasks"
         ],
         "summary": "Cancel async task",
-        "description": "Cancels a queued asynchronous task when the provider and model support cancellation. Currently, this public contract supports queued Volcengine Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`). Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
+        "description": "Cancels a queued asynchronous task when the provider and model support cancellation. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) when the provider selected for the task supports cancellation. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
         "operationId": "cancelAsyncTask",
         "parameters": [
           {
@@ -909,7 +1543,7 @@
           "Models"
         ],
         "summary": "List models",
-        "description": "Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include a lightweight `aisonar.public_contract_summary` with only `public_operations` and `request_endpoint`; `agent_preferences` appears only when `recommended_for` is present. Deprecated `aisonar` is still returned as a compatibility alias during the migration.",
+        "description": "Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present. Deprecated `lemondata` is still returned as a compatibility alias during the migration.",
         "operationId": "listModels",
         "responses": {
           "200": {
@@ -1300,7 +1934,7 @@
           "Anthropic"
         ],
         "summary": "Delete message batch (Anthropic-compatible)",
-        "description": "Deletes a native Anthropic Message Batch when supported by the upstream provider.",
+        "description": "Deletes a native Anthropic Message Batch when the provider supports deletion.",
         "operationId": "deleteAnthropicMessageBatch",
         "parameters": [
           {
@@ -1409,7 +2043,7 @@
           "Anthropic"
         ],
         "summary": "Cancel message batch (Anthropic-compatible)",
-        "description": "Cancels a native Anthropic Message Batch when it is still cancellable upstream.",
+        "description": "Cancels a native Anthropic Message Batch when the provider still allows cancellation.",
         "operationId": "cancelAnthropicMessageBatch",
         "parameters": [
           {
@@ -1754,6 +2388,74 @@
         }
       }
     },
+    "/v1/responses/{id}": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Retrieve response",
+        "description": "Retrieves a stored Responses API response by AI Sonar response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
+        "operationId": "retrieveResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Response id returned by POST /v1/responses."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stored response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Delete response",
+        "description": "Deletes a stored Responses API response by AI Sonar response id. When applicable, AI Sonar clears the provider-side record before clearing local state.",
+        "operationId": "deleteResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Response id returned by POST /v1/responses."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
     "/v1/responses/compact": {
       "post": {
         "tags": [
@@ -1960,7 +2662,20 @@
                   },
                   "mv": {
                     "type": "string",
-                    "description": "Music/video mode hint for compatible providers."
+                    "enum": [
+                      "chirp-v3-5",
+                      "chirp-v4",
+                      "chirp-v4-5",
+                      "chirp-v4.5",
+                      "chirp-v4-5plus",
+                      "chirp-v4.5plus",
+                      "chirp-v4-5all",
+                      "chirp-v4.5all",
+                      "chirp-v5",
+                      "chirp-v5-5",
+                      "chirp-v5.5"
+                    ],
+                    "description": "Official Suno model version. Required when creating music (action omitted or MUSIC); omit for lyrics-only requests."
                   },
                   "continue_clip_id": {
                     "type": "string",
@@ -2037,7 +2752,7 @@
                 "properties": {
                   "model": {
                     "type": "string",
-                    "default": "tripo3d-v2.5"
+                    "default": "tripo-h3.1"
                   },
                   "prompt": {
                     "type": "string",
@@ -2236,7 +2951,7 @@
                   "models": {
                     "type": "array",
                     "default": [],
-                    "description": "Optional logical model allowlist. Empty array means no per-key model restriction beyond organization policy.",
+                    "description": "Optional model allowlist. Empty array means no per-key model restriction beyond organization policy.",
                     "items": {
                       "type": "string"
                     }
@@ -2344,7 +3059,7 @@
                   },
                   "models": {
                     "type": "array",
-                    "description": "Updated logical model allowlist.",
+                    "description": "Updated model allowlist.",
                     "items": {
                       "type": "string"
                     }
@@ -2396,7 +3111,7 @@
           "Management"
         ],
         "summary": "Get API key usage",
-        "description": "Returns paginated key-level usage details without exposing physical routing metadata.",
+        "description": "Returns paginated key-level usage details without exposing provider-specific execution details.",
         "operationId": "getManagementApiKeyUsage",
         "security": [
           {
@@ -2434,13 +3149,13 @@
             "description": "Page size. Default is 50 and the maximum is 100."
           },
           {
-            "name": "logicalModel",
+            "name": "model",
             "in": "query",
             "schema": {
               "type": "string",
               "maxLength": 100
             },
-            "description": "Filter by requested logical model name. Maximum length 100."
+            "description": "Filter by requested model name. Maximum length 100."
           },
           {
             "name": "modelVendor",
@@ -2480,7 +3195,7 @@
                 "byok"
               ]
             },
-            "description": "Filter by access channel: platform billing or your own upstream provider key (BYOK)."
+            "description": "Filter by access channel: platform billing or your own provider key (BYOK)."
           },
           {
             "name": "startDate",
@@ -2531,7 +3246,7 @@
           "Management"
         ],
         "summary": "Get API key billing",
-        "description": "Returns aggregated key-level billing breakdowns without exposing physical routing metadata.",
+        "description": "Returns aggregated key-level billing breakdowns without exposing provider-specific execution details.",
         "operationId": "getManagementApiKeyBilling",
         "security": [
           {
@@ -2548,11 +3263,12 @@
             }
           },
           {
-            "name": "logicalModel",
+            "name": "model",
             "in": "query",
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Filter by requested model name."
           },
           {
             "name": "modelVendor",
@@ -2703,7 +3419,7 @@
                   },
                   "model": {
                     "type": "string",
-                    "description": "Optional AI Sonar extension for image file uploads. Defaults to gpt-image-2 and binds the returned file_id to the selected upstream image-edit channel."
+                    "description": "Optional AI Sonar extension for image file uploads. Defaults to gpt-image-2 and binds the returned file_id to the selected image-edit configuration."
                   }
                 }
               }
@@ -3057,7 +3773,7 @@
           "Text"
         ],
         "summary": "Translate text",
-        "description": "Translates text into a target language using the current public translation contract.",
+        "description": "Translates text into a target language using the current translation request format.",
         "operationId": "createTranslation",
         "requestBody": {
           "required": true,
@@ -3180,7 +3896,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "qwen-tts-realtime"
+            "example": "gpt-realtime"
           }
         ],
         "responses": {
@@ -3209,7 +3925,7 @@
                     },
                     "protocol": {
                       "type": "string",
-                      "example": "dashscope_realtime_proxy"
+                      "example": "tokenlab_realtime_proxy"
                     }
                   }
                 }
@@ -3254,7 +3970,8 @@
                 ],
                 "properties": {
                   "model": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Model to use for image edits. Send this explicitly."
                   },
                   "prompt": {
                     "type": "string"
@@ -3352,7 +4069,7 @@
                         },
                         "file_id": {
                           "type": "string",
-                          "description": "A file id returned by AI Sonar /v1/files and bound to the same upstream image-edit channel."
+                          "description": "A file id returned by AI Sonar /v1/files and bound to the same image-edit configuration."
                         }
                       },
                       "additionalProperties": false
@@ -3383,6 +4100,7 @@
               "schema": {
                 "type": "object",
                 "required": [
+                  "model",
                   "prompt"
                 ],
                 "properties": {
@@ -3409,7 +4127,8 @@
                     "format": "binary"
                   },
                   "model": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Model to use for image edits. Send this explicitly, for example gpt-image-2."
                   },
                   "prompt": {
                     "type": "string"
@@ -3535,6 +4254,7 @@
               "schema": {
                 "type": "object",
                 "required": [
+                  "model",
                   "image"
                 ],
                 "properties": {
@@ -3544,7 +4264,7 @@
                   },
                   "model": {
                     "type": "string",
-                    "default": "dall-e-2"
+                    "description": "Required model identifier for legacy variation-compatible routes. For current image-to-image workflows, prefer /v1/images/edits with gpt-image-2 or /v1/images/generations with an image-to-image model."
                   },
                   "n": {
                     "type": "integer",
@@ -3713,6 +4433,1247 @@
           }
         },
         "security": []
+      }
+    },
+    "/v1/worlds/media-assets/prepare-upload": {
+      "post": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "Prepare World Labs media asset upload",
+        "description": "Creates a World Labs media asset record and returns a signed upload URL. Use the returned media_asset_id from native world_prompt objects with source=media_asset. Media assets can only be used by the organization that created them.",
+        "operationId": "prepareWorldMediaAssetUpload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file_name",
+                  "kind"
+                ],
+                "properties": {
+                  "file_name": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "description": "File name, such as landscape.jpg."
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "image",
+                      "video"
+                    ],
+                    "description": "High-level media type."
+                  },
+                  "extension": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "File extension without dot, such as jpg, png, or mp4."
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "nullable": true,
+                    "description": "Optional application metadata."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload prepared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "media_asset",
+                    "upload_info"
+                  ],
+                  "properties": {
+                    "media_asset": {
+                      "type": "object",
+                      "required": [
+                        "media_asset_id",
+                        "file_name"
+                      ],
+                      "properties": {
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "file_name": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "image",
+                            "video"
+                          ]
+                        },
+                        "media_asset_id": {
+                          "type": "string"
+                        },
+                        "extension": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": true,
+                          "nullable": true
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    "upload_info": {
+                      "type": "object",
+                      "required": [
+                        "upload_url"
+                      ],
+                      "properties": {
+                        "upload_method": {
+                          "type": "string"
+                        },
+                        "upload_url": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "curl_example": {
+                          "type": "string"
+                        },
+                        "required_headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/worlds/media-assets/{id}": {
+      "get": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "Get World Labs media asset",
+        "description": "Retrieves metadata for a World Labs media asset prepared through AI Sonar. The media asset must belong to the authenticated organization.",
+        "operationId": "getWorldMediaAsset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Media asset ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media asset metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "media_asset_id",
+                    "file_name"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "file_name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "image",
+                        "video"
+                      ]
+                    },
+                    "media_asset_id": {
+                      "type": "string"
+                    },
+                    "extension": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "nullable": true
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/worlds/generations": {
+      "post": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "Create world generation task",
+        "description": "Creates a World Labs Marble world generation task for AI Sonar-supported Marble models. Returns a task ID for polling. AI Sonar supports native world_prompt media_asset references when the media asset was prepared through AI Sonar.",
+        "operationId": "createWorld",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "default": "marble-1.0",
+                    "enum": [
+                      "marble-1.0",
+                      "marble-1.1",
+                      "marble-1.1-plus"
+                    ],
+                    "description": "Marble model to use. Defaults to marble-1.0 to match the current World Labs compatibility default when model is omitted."
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "description": "Text prompt used for text or guided image/video world generation."
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "Optional display name for the generated world, up to 64 characters.",
+                    "maxLength": 64
+                  },
+                  "world_prompt": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Native World Labs world_prompt object for advanced callers. Supported prompt types are text, image, multi-image, and video. Content references may use source=media_asset with a media_asset_id prepared by /v1/worlds/media-assets/prepare-upload."
+                  },
+                  "image": {
+                    "type": "string",
+                    "description": "Base64 or data URL image prompt."
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Image URL prompt."
+                  },
+                  "images": {
+                    "type": "array",
+                    "description": "Shortcut multi-image prompts. Provide up to 4 images. Use native world_prompt.reconstruct_images=true for up to 8 images.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "uri": {
+                              "type": "string"
+                            },
+                            "image_url": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "azimuth": {
+                              "type": "number"
+                            }
+                          },
+                          "additionalProperties": true
+                        }
+                      ]
+                    },
+                    "maxItems": 4
+                  },
+                  "video_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Video URL prompt."
+                  },
+                  "is_pano": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "auto"
+                        ]
+                      }
+                    ],
+                    "description": "Whether an image prompt is an existing panorama. Use true for pano input, false for single-image input, or auto."
+                  },
+                  "seed": {
+                    "type": "integer",
+                    "description": "Optional seed from 0 through 4294967295.",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "description": "Optional World Labs tags. Provide up to 10 tags, each up to 32 characters.",
+                    "maxItems": 10
+                  },
+                  "permission": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Optional World Labs permission object."
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "End-user identifier."
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "world_prompt"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "prompt"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "image"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "image_url"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "images"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "video_url"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "operation_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "poll_url": {
+                      "type": "string"
+                    },
+                    "world_id": {
+                      "type": "string"
+                    },
+                    "world_marble_url": {
+                      "type": "string"
+                    },
+                    "model_url": {
+                      "type": "string"
+                    },
+                    "glb_url": {
+                      "type": "string"
+                    },
+                    "pano_url": {
+                      "type": "string"
+                    },
+                    "thumbnail_url": {
+                      "type": "string"
+                    },
+                    "caption": {
+                      "type": "string"
+                    },
+                    "cost": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/worlds/generations/{id}": {
+      "get": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "Get world generation status",
+        "description": "Retrieves the status and result of a World Labs Marble world generation task.",
+        "operationId": "getWorldStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "World generation task ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "operation_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed",
+                        "timeout"
+                      ]
+                    },
+                    "world_id": {
+                      "type": "string"
+                    },
+                    "world_marble_url": {
+                      "type": "string"
+                    },
+                    "model_url": {
+                      "type": "string"
+                    },
+                    "glb_url": {
+                      "type": "string"
+                    },
+                    "pano_url": {
+                      "type": "string"
+                    },
+                    "thumbnail_url": {
+                      "type": "string"
+                    },
+                    "caption": {
+                      "type": "string"
+                    },
+                    "cost": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/worlds/list": {
+      "post": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "List World Labs worlds",
+        "description": "Lists World Labs worlds created through AI Sonar for the authenticated organization. Results only include resources created through AI Sonar.",
+        "operationId": "listWorlds",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "page_size": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 20
+                  },
+                  "page_token": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "SUCCEEDED",
+                      "PENDING",
+                      "FAILED",
+                      "RUNNING"
+                    ],
+                    "nullable": true
+                  },
+                  "model": {
+                    "type": "string",
+                    "enum": [
+                      "marble-1.0",
+                      "marble-1.1",
+                      "marble-1.1-plus",
+                      "marble-1.0-draft"
+                    ],
+                    "nullable": true
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "nullable": true
+                  },
+                  "is_public": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "created_after": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "created_before": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "sort_by": {
+                    "type": "string",
+                    "enum": [
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "default": "created_at"
+                  },
+                  "sort_order": {
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ],
+                    "default": "desc",
+                    "description": "AI Sonar extension for ascending or descending order."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "World list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "worlds"
+                  ],
+                  "properties": {
+                    "worlds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "world_id"
+                        ],
+                        "properties": {
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "world_id": {
+                            "type": "string"
+                          },
+                          "world_marble_url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "assets": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "model": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "permission": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "nullable": true
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "world_prompt": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    },
+                    "next_page_token": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/worlds/{id}": {
+      "get": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "Get World Labs world",
+        "description": "Retrieves a World Labs world generated through AI Sonar. The world ID must be owned by the authenticated organization.",
+        "operationId": "getWorld",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "World ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "World details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "world_id"
+                  ],
+                  "properties": {
+                    "display_name": {
+                      "type": "string"
+                    },
+                    "world_id": {
+                      "type": "string"
+                    },
+                    "world_marble_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "assets": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "model": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "permission": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "nullable": true
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "world_prompt": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Worlds"
+        ],
+        "summary": "Delete World Labs world",
+        "description": "Deletes a World Labs world generated through AI Sonar. This permanently deletes the world and associated assets when World Labs accepts the deletion. AI Sonar keeps task status records for usage history.",
+        "operationId": "deleteWorld",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "World ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "World deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "deleted",
+                    "world_id"
+                  ],
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean"
+                    },
+                    "world_id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/videos/assets/groups": {
+      "post": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Create Seedance material asset group",
+        "description": "Creates a AI Sonar Seedance virtual-avatar material group. Real-person material groups are created by the real-person verification bind flow.",
+        "operationId": "createSeedanceMaterialAssetGroup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedanceMaterialAssetGroupCreateRequest"
+              },
+              "examples": {
+                "virtual_avatar_group": {
+                  "summary": "Create a virtual-avatar material group",
+                  "value": {
+                    "library_type": "aigc_avatar",
+                    "group_name": "Product references",
+                    "description": "Reusable product shots"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Material asset group created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetGroup"
+                },
+                "examples": {
+                  "group_created": {
+                    "summary": "Material group created",
+                    "value": {
+                      "id": "seedance_group_virtual_123",
+                      "object": "seedance.material_asset_group",
+                      "library_type": "aigc_avatar",
+                      "group_name": "Product references",
+                      "description": "Reusable product shots",
+                      "status": "ACTIVE",
+                      "metadata": null,
+                      "created_at": 1782998400000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Material group mapping conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "List Seedance material asset groups",
+        "description": "Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after a successful verification bind flow.",
+        "operationId": "listSeedanceMaterialAssetGroups",
+        "parameters": [
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "DELETED"
+              ]
+            }
+          },
+          {
+            "name": "library_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "aigc_avatar",
+                "liveness_face"
+              ]
+            },
+            "description": "Filter by AI Sonar material library class."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Material asset groups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetGroupList"
+                },
+                "examples": {
+                  "groups": {
+                    "summary": "Material groups",
+                    "value": {
+                      "groups": [
+                        {
+                          "id": "seedance_group_virtual_123",
+                          "object": "seedance.material_asset_group",
+                          "library_type": "aigc_avatar",
+                          "group_name": "Product references",
+                          "description": "Reusable product shots",
+                          "status": "ACTIVE",
+                          "metadata": null,
+                          "created_at": 1782998400000
+                        },
+                        {
+                          "id": "seedance_group_real_123",
+                          "object": "seedance.material_asset_group",
+                          "library_type": "liveness_face",
+                          "group_name": "Creator A",
+                          "description": null,
+                          "status": "ACTIVE",
+                          "metadata": null,
+                          "created_at": 1782998400000
+                        }
+                      ],
+                      "next_page_token": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/v1/videos/assets/groups/{groupId}": {
+      "get": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Get Seedance material asset group",
+        "description": "Retrieves one AI Sonar Seedance material group.",
+        "operationId": "getSeedanceMaterialAssetGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "seedance_group_virtual_123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Material asset group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetGroup"
+                },
+                "examples": {
+                  "group": {
+                    "summary": "Material group",
+                    "value": {
+                      "id": "seedance_group_virtual_123",
+                      "object": "seedance.material_asset_group",
+                      "library_type": "aigc_avatar",
+                      "group_name": "Product references",
+                      "description": "Reusable product shots",
+                      "status": "ACTIVE",
+                      "metadata": null,
+                      "created_at": 1782998400000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Update Seedance material asset group",
+        "description": "Updates display metadata for a AI Sonar Seedance material group.",
+        "operationId": "updateSeedanceMaterialAssetGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "seedance_group_virtual_123"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedanceMaterialAssetGroupUpdateRequest"
+              },
+              "examples": {
+                "update_group": {
+                  "summary": "Update group display fields",
+                  "value": {
+                    "group_name": "Updated references",
+                    "description": "Images approved for summer videos"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Material asset group updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetGroup"
+                },
+                "examples": {
+                  "group_updated": {
+                    "summary": "Material group updated",
+                    "value": {
+                      "id": "seedance_group_virtual_123",
+                      "object": "seedance.material_asset_group",
+                      "library_type": "aigc_avatar",
+                      "group_name": "Updated references",
+                      "description": "Images approved for summer videos",
+                      "status": "ACTIVE",
+                      "metadata": null,
+                      "created_at": 1782998400000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Video"
+        ],
+        "summary": "Delete Seedance material asset group",
+        "description": "Deletes a AI Sonar Seedance material group and its material assets. The operation is irreversible when accepted.",
+        "operationId": "deleteSeedanceMaterialAssetGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "seedance_group_virtual_123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Material asset group deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedanceMaterialAssetDeleteResponse"
+                },
+                "examples": {
+                  "group_deleted": {
+                    "summary": "Material group deleted",
+                    "value": {
+                      "deleted": true,
+                      "id": "seedance_group_virtual_123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
+          }
+        }
       }
     }
   },
@@ -4366,6 +6327,7 @@
       "ImageGenerationRequest": {
         "type": "object",
         "required": [
+          "model",
           "prompt"
         ],
         "properties": {
@@ -4376,8 +6338,7 @@
           },
           "model": {
             "type": "string",
-            "default": "dall-e-3",
-            "description": "Model to use"
+            "description": "Model to use. Send this explicitly; query GET /v1/models?recommended_for=image for current recommendations."
           },
           "n": {
             "type": "integer",
@@ -4402,7 +6363,7 @@
               "high"
             ],
             "default": "standard",
-            "description": "Image quality. DALL-E models use standard/hd; GPT Image models such as gpt-image-2 use auto/low/medium/high."
+            "description": "Image quality. GPT Image models such as gpt-image-2 use auto/low/medium/high. Other image families may use provider-specific values."
           },
           "style": {
             "type": "string",
@@ -4410,8 +6371,7 @@
               "vivid",
               "natural"
             ],
-            "default": "vivid",
-            "description": "Image style (dall-e-3 only)"
+            "description": "Optional model-specific style selector. Only send when the selected model documents support for this parameter."
           },
           "response_format": {
             "type": "string",
@@ -4450,7 +6410,7 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 100,
-            "description": "Alias for output_compression when supported by the upstream-compatible route"
+            "description": "Alias for output_compression when supported by the selected model"
           },
           "moderation": {
             "type": "string",
@@ -4464,7 +6424,7 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 3,
-            "description": "Number of partial images requested for streaming-compatible upstreams; upstream usage must include the additional image output tokens"
+            "description": "Number of partial images requested for streaming-compatible providers; usage may include additional image output tokens"
           },
           "user": {
             "type": "string",
@@ -4494,7 +6454,7 @@
                 },
                 "revised_prompt": {
                   "type": "string",
-                  "description": "Revised prompt (dall-e-3)"
+                  "description": "Revised prompt returned by models that rewrite or enhance the submitted prompt."
                 }
               }
             }
@@ -4658,9 +6618,6 @@
       },
       "VideoGenerationRequest": {
         "type": "object",
-        "required": [
-          "prompt"
-        ],
         "properties": {
           "prompt": {
             "type": "string",
@@ -4700,33 +6657,36 @@
           },
           "duration": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": -1,
             "maximum": 60,
-            "description": "Video duration in seconds."
+            "description": "Video duration in seconds. Seedance models also accept -1 to let the model choose within its supported duration range; AI Sonar estimates billing conservatively for that mode."
           },
           "aspect_ratio": {
             "type": "string",
             "enum": [
+              "adaptive",
               "16:9",
               "9:16",
               "1:1",
               "4:3",
-              "3:4"
+              "3:4",
+              "21:9"
             ],
-            "description": "Video aspect ratio"
+            "description": "Canonical video aspect ratio. Seedance defaults to adaptive when omitted. The ratio alias is accepted for compatibility."
           },
           "resolution": {
             "type": "string",
             "enum": [
+              "480p",
               "720p",
               "1080p",
               "4k"
             ],
-            "description": "Video resolution"
+            "description": "Video resolution. Seedance defaults to 720p when omitted; available values are model-dependent."
           },
           "output_audio": {
             "type": "boolean",
-            "description": "Model-dependent audio output toggle. Veo 3 family defaults to true when omitted. Kling 3.0 Video accepts this selector for non-element-reference requests and maps it to the compatible upstream sound control; omitted Kling requests default to silent output. Do not combine output_audio=true with kling_elements. The camelCase alias outputAudio is accepted for compatibility."
+            "description": "Canonical model-dependent audio output toggle. Veo 3 and Seedance requests default to true when omitted. Kling 3.0 Video accepts this selector for non-element-reference requests and maps it to the compatible sound control; omitted Kling requests default to silent output. Do not combine output_audio=true with kling_elements. The aliases outputAudio and generate_audio are accepted for compatibility and must match when provided together."
           },
           "fps": {
             "type": "integer",
@@ -4740,7 +6700,9 @@
           },
           "seed": {
             "type": "integer",
-            "description": "Seed for reproducibility"
+            "minimum": -1,
+            "maximum": 4294967295,
+            "description": "Seed for reproducibility. Seedance uses -1 for random seed when omitted."
           },
           "cfg_scale": {
             "type": "number",
@@ -4816,7 +6778,20 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. Route-level support currently allows up to 9 URLs or compatible data URLs; model-specific public contracts can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds, and grok-imagine-video-1.5-preview does not accept reference images.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds, and grok-imagine-video-1.5-preview does not accept reference images.",
+            "minItems": 1,
+            "maxItems": 9,
+            "items": {
+              "type": "string"
+            }
+          },
+          "material_asset_id": {
+            "type": "string",
+            "description": "AI Sonar Seedance material asset ID returned by /v1/videos/assets. The asset must belong to the current account and be ready for generation."
+          },
+          "material_asset_ids": {
+            "type": "array",
+            "description": "AI Sonar Seedance material asset IDs returned by /v1/videos/assets. All assets must belong to the current account and be ready for generation.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
@@ -4838,7 +6813,7 @@
           },
           "task_id": {
             "type": "string",
-            "description": "Provider-specific task ID used by some continuation, extension, or derivative flows."
+            "description": "Task identifier used by some continuation, extension, or derivative flows."
           },
           "extend_at": {
             "type": "integer",
@@ -4851,17 +6826,17 @@
           },
           "seconds": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": -1,
             "maximum": 60,
-            "description": "Alias of duration used by some upstream-compatible request shapes."
+            "description": "Alias of duration used by compatible request shapes. Seedance models also accept -1 to let the model choose within its supported duration range; duration and seconds must match when both are provided."
           },
           "size": {
             "type": "string",
-            "description": "Model-specific size tier used by some OpenAI-compatible video models."
+            "description": "Model-specific size tier for compatible video models."
           },
           "watermark": {
             "type": "boolean",
-            "description": "Optional watermark toggle for models that expose it."
+            "description": "Optional watermark toggle for models that expose it. Seedance defaults to false when omitted."
           },
           "effect_type": {
             "type": "string",
@@ -4886,6 +6861,68 @@
               "type": "string",
               "format": "uri"
             }
+          },
+          "ratio": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ],
+            "description": "Compatibility alias for aspect_ratio. If both ratio and aspect_ratio are provided, they must match."
+          },
+          "outputAudio": {
+            "type": "boolean",
+            "description": "Compatibility alias for output_audio. If both are provided, they must match."
+          },
+          "generate_audio": {
+            "type": "boolean",
+            "description": "Compatibility alias for output_audio. If more than one audio toggle is provided, all values must match."
+          },
+          "execution_expires_after": {
+            "type": "integer",
+            "minimum": 3600,
+            "maximum": 259200,
+            "default": 172800,
+            "description": "Optional execution expiry window in seconds for compatible video models. Seedance defaults to 172800 seconds when omitted."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9,
+            "default": 0,
+            "description": "Optional task priority for compatible video models. Do not combine priority with service_tier=flex."
+          },
+          "safety_identifier": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Optional safety/user trace identifier for compatible video models. If omitted for Seedance, AI Sonar uses user when provided."
+          },
+          "service_tier": {
+            "type": "string",
+            "enum": [
+              "default",
+              "flex"
+            ],
+            "description": "Optional service tier for compatible video models. service_tier=default is accepted as a no-op for Seedance 2.0 models; service_tier=flex is rejected where the selected model does not support it."
+          },
+          "frames": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Optional frame count for compatible video models. Seedance 2.0 models and Seedance 1.5 Pro do not support this field."
+          },
+          "camera_fixed": {
+            "type": "boolean",
+            "description": "Optional fixed-camera selector for compatible video models. Seedance 2.0 models do not support this field."
+          },
+          "return_last_frame": {
+            "type": "boolean",
+            "default": false,
+            "description": "Return the last generated frame when the selected model supports it. Seedance defaults to false when omitted."
           }
         }
       },
@@ -5023,7 +7060,7 @@
             "enum": [
               "cancelled"
             ],
-            "description": "Cancellation marker for tasks cancelled through the public async task contract."
+            "description": "Cancellation marker for tasks cancelled through the public async task endpoint."
           },
           "billing_transaction_id": {
             "type": "string"
@@ -5065,6 +7102,173 @@
           }
         }
       },
+      "SeedanceMaterialAssetCreateRequest": {
+        "type": "object",
+        "required": [
+          "asset_url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "asset_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Publicly reachable source URL to import. AI Sonar stores the material for later use; do not rely on this URL as the long-term material address."
+          },
+          "asset_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Optional display name stored with the material asset."
+          },
+          "asset_type": {
+            "type": "string",
+            "enum": [
+              "Image",
+              "Video",
+              "Audio"
+            ],
+            "default": "Image"
+          },
+          "library_type": {
+            "type": "string",
+            "enum": [
+              "aigc_avatar",
+              "liveness_face"
+            ],
+            "default": "aigc_avatar",
+            "description": "Material library class. aigc_avatar is for virtual-avatar materials. liveness_face is for verified real-person materials."
+          },
+          "group_id": {
+            "type": "string",
+            "description": "AI Sonar material group ID. Required for liveness_face materials; optional for aigc_avatar."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Optional client metadata stored with the material asset."
+          }
+        }
+      },
+      "SeedanceMaterialAsset": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "status",
+          "asset_type",
+          "ready",
+          "library_type"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "AI Sonar material asset ID. Use this as material_asset_id after the asset becomes ACTIVE."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "seedance.material_asset"
+            ]
+          },
+          "group_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "AI Sonar material group ID that owns this material asset."
+          },
+          "library_type": {
+            "type": "string",
+            "enum": [
+              "aigc_avatar",
+              "liveness_face"
+            ]
+          },
+          "asset_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "asset_type": {
+            "type": "string",
+            "enum": [
+              "Image",
+              "Video",
+              "Audio"
+            ]
+          },
+          "asset_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Original upload source when available. Use the AI Sonar material asset id for generation, not this URL."
+          },
+          "cover_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reserved for future preview metadata. Do not depend on it for material access."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PROCESSING",
+              "ACTIVE",
+              "FAILED",
+              "DELETED"
+            ]
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "True when the asset is active and not deleted."
+          },
+          "error_message": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "Unix timestamp when the material asset record was created."
+          }
+        }
+      },
+      "SeedanceMaterialAssetList": {
+        "type": "object",
+        "required": [
+          "assets"
+        ],
+        "properties": {
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeedanceMaterialAsset"
+            }
+          },
+          "next_page_token": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "SeedanceMaterialAssetDeleteResponse": {
+        "type": "object",
+        "required": [
+          "deleted",
+          "id"
+        ],
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
       "ModelsResponse": {
         "type": "object",
         "properties": {
@@ -5105,17 +7309,17 @@
             "description": "Model provider",
             "example": "openai"
           },
-          "aisonar": {
-            "$ref": "#/components/schemas/ModelAI SonarExtension"
+          "tokenlab": {
+            "$ref": "#/components/schemas/ModelPlatformExtension"
           },
-          "aisonar": {
+          "lemondata": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/ModelAisonarExtension"
+                "$ref": "#/components/schemas/ModelLegacyPlatformExtension"
               }
             ],
             "deprecated": true,
-            "description": "Deprecated alias for aisonar. Retained for compatibility during the AI Sonar migration."
+            "description": "Deprecated compatibility alias. Retained for existing clients."
           }
         },
         "required": [
@@ -5123,7 +7327,7 @@
           "object",
           "created",
           "owned_by",
-          "aisonar"
+          "tokenlab"
         ],
         "additionalProperties": false
       },
@@ -5732,7 +7936,7 @@
       "ManagementUsageItem": {
         "type": "object",
         "required": [
-          "logical_model",
+          "model",
           "scene",
           "access_channel",
           "usage_unit",
@@ -5753,9 +7957,6 @@
               "null"
             ],
             "description": "Settled billing transaction id for request-level reconciliation."
-          },
-          "logical_model": {
-            "type": "string"
           },
           "model_vendor": {
             "type": [
@@ -5801,6 +8002,9 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "model": {
+            "type": "string"
           }
         }
       },
@@ -5845,36 +8049,6 @@
                 }
               }
             }
-          }
-        }
-      },
-      "ManagementLogicalModelBreakdown": {
-        "type": "object",
-        "required": [
-          "logical_model",
-          "model_vendor",
-          "requests",
-          "cost",
-          "usage_quantity"
-        ],
-        "properties": {
-          "logical_model": {
-            "type": "string"
-          },
-          "model_vendor": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "requests": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number"
-          },
-          "usage_quantity": {
-            "type": "number"
           }
         }
       },
@@ -5958,12 +8132,6 @@
       "ManagementBreakdowns": {
         "type": "object",
         "properties": {
-          "by_logical_model": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementLogicalModelBreakdown"
-            }
-          },
           "by_model_vendor": {
             "type": "array",
             "items": {
@@ -5986,6 +8154,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ManagementDailyCostBreakdown"
+            }
+          },
+          "by_model": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagementModelBreakdown"
             }
           }
         }
@@ -6059,108 +8233,6 @@
           }
         }
       },
-      "ModelListContractSummary": {
-        "type": [
-          "object",
-          "null"
-        ],
-        "properties": {
-          "public_operations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "request_endpoint": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "ModelListAisonarExtension": {
-        "type": "object",
-        "description": "AI Sonar discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full public contracts, and empty recommendation snapshots are omitted.",
-        "properties": {
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "max_input_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "max_output_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "category": {
-            "type": "string"
-          },
-          "pricing_unit": {
-            "type": "string"
-          },
-          "cache_pricing": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "has_complex_pricing": {
-            "type": "boolean"
-          },
-          "pricing_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "agent_preferences": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "public_contract_summary": {
-            "$ref": "#/components/schemas/ModelListContractSummary"
-          }
-        },
-        "required": [
-          "aliases",
-          "pricing",
-          "capabilities",
-          "max_input_tokens",
-          "max_output_tokens",
-          "category",
-          "pricing_unit",
-          "has_complex_pricing"
-        ],
-        "additionalProperties": false
-      },
       "ModelListItem": {
         "type": "object",
         "properties": {
@@ -6184,17 +8256,17 @@
             "description": "Model provider",
             "example": "openai"
           },
-          "aisonar": {
+          "lemondata": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/ModelListAisonarExtension"
+                "$ref": "#/components/schemas/ModelListLegacyPlatformExtension"
               }
             ],
             "deprecated": true,
-            "description": "Deprecated alias for aisonar. Retained for compatibility during the AI Sonar migration."
+            "description": "Deprecated compatibility alias. Retained for existing clients."
           },
-          "aisonar": {
-            "$ref": "#/components/schemas/ModelListAI SonarExtension"
+          "tokenlab": {
+            "$ref": "#/components/schemas/ModelListPlatformExtension"
           }
         },
         "required": [
@@ -6202,222 +8274,9 @@
           "object",
           "created",
           "owned_by",
-          "aisonar"
+          "tokenlab"
         ],
         "additionalProperties": false
-      },
-      "ModelAisonarExtension": {
-        "type": "object",
-        "description": "AI Sonar extension fields for the detail route, including pricing, capabilities, recommendation metadata, and the full non-chat public contract.",
-        "properties": {
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "max_input_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "max_output_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "category": {
-            "type": "string"
-          },
-          "pricing_unit": {
-            "type": "string"
-          },
-          "cache_pricing": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "has_complex_pricing": {
-            "type": "boolean"
-          },
-          "supported_operations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "pricing_provenance": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "public_contract_summary": {
-            "$ref": "#/components/schemas/NonChatPublicContractSummary"
-          },
-          "public_contract": {
-            "$ref": "#/components/schemas/NonChatPublicContract"
-          }
-        },
-        "additionalProperties": true
-      },
-      "NonChatPublicContractSummary": {
-        "type": [
-          "object",
-          "null"
-        ],
-        "properties": {
-          "public_operations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "supported_parameters": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "required_selectors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "optional_selectors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "resolutions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "durations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "aspect_ratios": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "request_endpoint": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status_mode": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "contract_scope": {
-            "type": "string",
-            "enum": [
-              "active",
-              "deferred"
-            ]
-          },
-          "recommended_request_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          }
-        },
-        "additionalProperties": true
-      },
-      "NonChatPublicContract": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/NonChatPublicContractSummary"
-          },
-          {
-            "type": [
-              "object",
-              "null"
-            ],
-            "properties": {
-              "documented_inputs": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "documented_outputs": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "fallback_status_endpoints": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "truth_source": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "notes": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "recommended_request": {
-                "type": [
-                  "object",
-                  "null"
-                ],
-                "additionalProperties": true
-              }
-            },
-            "additionalProperties": true
-          }
-        ]
       },
       "ModelPricingResponse": {
         "type": "object",
@@ -7151,7 +9010,7 @@
       },
       "AnthropicMessageBatch": {
         "type": "object",
-        "description": "Anthropic-compatible message batch object relayed from the upstream provider.",
+        "description": "Anthropic-compatible message batch object relayed from the provider.",
         "required": [
           "id",
           "type"
@@ -7170,7 +9029,7 @@
           },
           "processing_status": {
             "type": "string",
-            "description": "Current upstream processing status for the batch",
+            "description": "Current processing status for the batch",
             "example": "in_progress"
           },
           "request_counts": {
@@ -7359,9 +9218,590 @@
         },
         "additionalProperties": true
       },
-      "ModelListAI SonarExtension": {
+      "SeedanceMaterialAssetGroupCreateRequest": {
         "type": "object",
-        "description": "AI Sonar discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full public contracts, and empty recommendation snapshots are omitted.",
+        "additionalProperties": false,
+        "properties": {
+          "group_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Optional display name for the material group."
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          },
+          "library_type": {
+            "type": "string",
+            "enum": [
+              "aigc_avatar",
+              "liveness_face"
+            ],
+            "default": "aigc_avatar",
+            "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through real-person material verification."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          }
+        }
+      },
+      "SeedanceMaterialAssetGroupUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "group_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          }
+        }
+      },
+      "SeedanceMaterialAssetGroup": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "status",
+          "library_type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "AI Sonar material group ID. Use it as group_id when uploading materials."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "seedance.material_asset_group"
+            ]
+          },
+          "library_type": {
+            "type": "string",
+            "enum": [
+              "aigc_avatar",
+              "liveness_face"
+            ]
+          },
+          "group_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SeedanceMaterialAssetGroupList": {
+        "type": "object",
+        "required": [
+          "groups"
+        ],
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeedanceMaterialAssetGroup"
+            }
+          },
+          "next_page_token": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SeedanceMaterialAssetUpdateRequest": {
+        "type": "object",
+        "minProperties": 1,
+        "properties": {
+          "asset_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Replacement publicly reachable material asset URL."
+          },
+          "asset_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Updated display name stored with the material asset."
+          },
+          "asset_type": {
+            "type": "string",
+            "enum": [
+              "Image",
+              "Video",
+              "Audio"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Updated client metadata stored with the material asset."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementModelBreakdown": {
+        "type": "object",
+        "required": [
+          "model",
+          "model_vendor",
+          "requests",
+          "cost",
+          "usage_quantity"
+        ],
+        "properties": {
+          "model_vendor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requests": {
+            "type": "integer"
+          },
+          "cost": {
+            "type": "number"
+          },
+          "usage_quantity": {
+            "type": "number"
+          },
+          "model": {
+            "type": "string"
+          }
+        }
+      },
+      "ModelListRequestFormatSummary": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "public_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "request_endpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_endpoint_by_operation": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "NonChatRequestFormatSummary": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "public_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supported_parameters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_selectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional_selectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resolutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "durations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "aspect_ratios": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "request_endpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status_mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recommended_request_summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "request_endpoint_by_operation": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "NonChatRequestFormatDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NonChatRequestFormatSummary"
+          },
+          {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "documented_inputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "documented_outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "fallback_status_endpoints": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "notes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "recommended_request": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "SeedanceVisualValidationSessionCreateRequest": {
+        "type": "object",
+        "required": [
+          "callback_url"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS URL that AI Sonar redirects to after the H5 verification flow. AI Sonar appends session_id, verification_token, verification_status, and result_code."
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en",
+              "zh-Hant"
+            ],
+            "default": "zh",
+            "description": "Language parameter appended to the returned H5 link."
+          }
+        }
+      },
+      "SeedanceVisualValidationSession": {
+        "type": "object",
+        "required": [
+          "object",
+          "session_id",
+          "h5_link",
+          "callback_url",
+          "expires_in",
+          "language"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "seedance.visual_validation_session"
+            ]
+          },
+          "session_id": {
+            "type": "string",
+            "description": "AI Sonar real-person verification session ID."
+          },
+          "h5_link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Short-lived H5 verification link for the end user. Valid for 120 seconds."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Customer callback URL originally supplied in the request."
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en",
+              "zh-Hant"
+            ]
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Validity window in seconds for the session and H5 link."
+          }
+        }
+      },
+      "SeedanceVisualValidationResultBindRequest": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "verification_token"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "AI Sonar real-person verification session ID."
+          },
+          "verification_token": {
+            "type": "string",
+            "description": "AI Sonar opaque token from the AI Sonar callback redirect."
+          },
+          "group_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Optional AI Sonar display name for the bound real-person material group."
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          }
+        }
+      },
+      "SeedanceVisualValidationResult": {
+        "type": "object",
+        "required": [
+          "object",
+          "group_id",
+          "material_group"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "seedance.visual_validation_result"
+            ]
+          },
+          "group_id": {
+            "type": "string",
+            "description": "AI Sonar material group ID to pass as group_id when creating real-person material assets."
+          },
+          "material_group": {
+            "$ref": "#/components/schemas/SeedanceMaterialAssetGroup"
+          }
+        }
+      },
+      "SeedanceVisualValidationSessionHistory": {
+        "type": "object",
+        "required": [
+          "object",
+          "session_id",
+          "callback_url",
+          "language",
+          "status",
+          "created_at",
+          "expires_at"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "seedance.visual_validation_session_history"
+            ]
+          },
+          "session_id": {
+            "type": "string",
+            "description": "AI Sonar real-person verification session ID."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Customer callback URL originally supplied when the session was created."
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en",
+              "zh-Hant"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "created",
+              "callback_succeeded",
+              "callback_failed",
+              "bound",
+              "expired"
+            ],
+            "description": "AI Sonar history status. A created or callback_succeeded session is reported as expired after the 120-second session window if it was not bound."
+          },
+          "result_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Neutral result code forwarded by AI Sonar callback, when available."
+          },
+          "verification_status": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "succeeded",
+              "failed",
+              null
+            ],
+            "description": "Neutral callback status, when AI Sonar has received the H5 callback."
+          },
+          "group_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "AI Sonar material group ID after the verification result has been bound."
+          },
+          "group_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "AI Sonar material group display name after binding, when available."
+          },
+          "error_message": {
+            "type": "string",
+            "nullable": true,
+            "description": "Neutral failure description, when available."
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp in milliseconds."
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp in milliseconds for the 120-second binding window."
+          },
+          "callback_received_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds when AI Sonar received the callback."
+          },
+          "bound_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds when AI Sonar bound the material group."
+          }
+        },
+        "additionalProperties": false
+      },
+      "SeedanceVisualValidationHistoryList": {
+        "type": "object",
+        "required": [
+          "sessions"
+        ],
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeedanceVisualValidationSessionHistory"
+            }
+          },
+          "next_page_token": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModelListLegacyPlatformExtension": {
+        "type": "object",
+        "description": "AI Sonar discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full model details, and empty recommendation snapshots are omitted.",
         "properties": {
           "aliases": {
             "type": "array",
@@ -7424,8 +9864,8 @@
             "type": "object",
             "additionalProperties": true
           },
-          "public_contract_summary": {
-            "$ref": "#/components/schemas/ModelListContractSummary"
+          "request_format_summary": {
+            "$ref": "#/components/schemas/ModelListRequestFormatSummary"
           }
         },
         "required": [
@@ -7440,9 +9880,9 @@
         ],
         "additionalProperties": false
       },
-      "ModelAI SonarExtension": {
+      "ModelLegacyPlatformExtension": {
         "type": "object",
-        "description": "AI Sonar extension fields for the detail route, including pricing, capabilities, recommendation metadata, and the full non-chat public contract.",
+        "description": "AI Sonar extension fields for the detail route, including pricing, capabilities, recommendation metadata, and detailed non-chat request metadata.",
         "properties": {
           "aliases": {
             "type": "array",
@@ -7514,14 +9954,568 @@
             ],
             "additionalProperties": true
           },
-          "public_contract_summary": {
-            "$ref": "#/components/schemas/NonChatPublicContractSummary"
+          "request_format_summary": {
+            "$ref": "#/components/schemas/NonChatRequestFormatSummary"
           },
-          "public_contract": {
-            "$ref": "#/components/schemas/NonChatPublicContract"
+          "request_format_details": {
+            "$ref": "#/components/schemas/NonChatRequestFormatDetails"
           }
         },
         "additionalProperties": true
+      },
+      "ModelListPlatformExtension": {
+        "type": "object",
+        "description": "AI Sonar discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full model details, and empty recommendation snapshots are omitted.",
+        "properties": {
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_input_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "max_output_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "pricing_unit": {
+            "type": "string"
+          },
+          "cache_pricing": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "has_complex_pricing": {
+            "type": "boolean"
+          },
+          "pricing_summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "agent_preferences": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "lifecycle": {
+            "type": "object",
+            "required": [
+              "stage",
+              "reason",
+              "replacement_model",
+              "released_at",
+              "deprecated_at",
+              "retired_at",
+              "sunset_at",
+              "latest",
+              "latest_source",
+              "latest_window_days"
+            ],
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "preview",
+                  "deprecated",
+                  "retired"
+                ],
+                "description": "Provider lifecycle stage for public discovery and display."
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short lifecycle reason or provider note."
+              },
+              "replacement_model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Recommended replacement model when available."
+              },
+              "released_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Official release date when available."
+              },
+              "deprecated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Official deprecation date when available."
+              },
+              "retired_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Official retirement date when the model is no longer public-discoverable."
+              },
+              "sunset_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Future sunset date for deprecated models."
+              },
+              "latest": {
+                "type": "boolean",
+                "description": "Whether the model should receive a latest badge."
+              },
+              "latest_source": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "override",
+                  "none"
+                ],
+                "description": "How the latest badge was derived."
+              },
+              "latest_window_days": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Window used for automatic latest badges."
+              }
+            },
+            "additionalProperties": false
+          },
+          "commercial": {
+            "type": "object",
+            "required": [
+              "user_charge_policy",
+              "free_reason",
+              "free_until"
+            ],
+            "properties": {
+              "user_charge_policy": {
+                "type": "string",
+                "enum": [
+                  "paid",
+                  "free"
+                ],
+                "description": "User billing policy for this model."
+              },
+              "free_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "platform",
+                  "promotion",
+                  null
+                ],
+                "description": "Reason a model is free to users, if applicable."
+              },
+              "free_until": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "End time for a temporary free policy, if applicable."
+              }
+            },
+            "additionalProperties": false
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "tone",
+                "priority",
+                "tooltip"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "enum": [
+                    "free",
+                    "latest",
+                    "preview",
+                    "deprecated",
+                    "retired"
+                  ]
+                },
+                "tone": {
+                  "type": "string",
+                  "enum": [
+                    "green",
+                    "blue",
+                    "amber",
+                    "red",
+                    "slate"
+                  ]
+                },
+                "priority": {
+                  "type": "integer"
+                },
+                "tooltip": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "values"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "values": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "Display badges derived from lifecycle and commercial metadata."
+          },
+          "request_format_summary": {
+            "$ref": "#/components/schemas/ModelListRequestFormatSummary"
+          }
+        },
+        "required": [
+          "aliases",
+          "pricing",
+          "capabilities",
+          "max_input_tokens",
+          "max_output_tokens",
+          "category",
+          "pricing_unit",
+          "has_complex_pricing",
+          "lifecycle",
+          "commercial",
+          "badges"
+        ],
+        "additionalProperties": false
+      },
+      "ModelPlatformExtension": {
+        "type": "object",
+        "description": "AI Sonar extension fields for the detail route, including pricing, capabilities, recommendation metadata, and detailed non-chat request metadata.",
+        "properties": {
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_input_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "max_output_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "pricing_unit": {
+            "type": "string"
+          },
+          "cache_pricing": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "has_complex_pricing": {
+            "type": "boolean"
+          },
+          "supported_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pricing_summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "pricing_provenance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "lifecycle": {
+            "type": "object",
+            "required": [
+              "stage",
+              "reason",
+              "replacement_model",
+              "released_at",
+              "deprecated_at",
+              "retired_at",
+              "sunset_at",
+              "latest",
+              "latest_source",
+              "latest_window_days"
+            ],
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "preview",
+                  "deprecated",
+                  "retired"
+                ],
+                "description": "Provider lifecycle stage for public discovery and display."
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Short lifecycle reason or provider note."
+              },
+              "replacement_model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Recommended replacement model when available."
+              },
+              "released_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Official release date when available."
+              },
+              "deprecated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Official deprecation date when available."
+              },
+              "retired_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Official retirement date when the model is no longer public-discoverable."
+              },
+              "sunset_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "Future sunset date for deprecated models."
+              },
+              "latest": {
+                "type": "boolean",
+                "description": "Whether the model should receive a latest badge."
+              },
+              "latest_source": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "override",
+                  "none"
+                ],
+                "description": "How the latest badge was derived."
+              },
+              "latest_window_days": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Window used for automatic latest badges."
+              }
+            },
+            "additionalProperties": false
+          },
+          "commercial": {
+            "type": "object",
+            "required": [
+              "user_charge_policy",
+              "free_reason",
+              "free_until"
+            ],
+            "properties": {
+              "user_charge_policy": {
+                "type": "string",
+                "enum": [
+                  "paid",
+                  "free"
+                ],
+                "description": "User billing policy for this model."
+              },
+              "free_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "platform",
+                  "promotion",
+                  null
+                ],
+                "description": "Reason a model is free to users, if applicable."
+              },
+              "free_until": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "End time for a temporary free policy, if applicable."
+              }
+            },
+            "additionalProperties": false
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "tone",
+                "priority",
+                "tooltip"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "enum": [
+                    "free",
+                    "latest",
+                    "preview",
+                    "deprecated",
+                    "retired"
+                  ]
+                },
+                "tone": {
+                  "type": "string",
+                  "enum": [
+                    "green",
+                    "blue",
+                    "amber",
+                    "red",
+                    "slate"
+                  ]
+                },
+                "priority": {
+                  "type": "integer"
+                },
+                "tooltip": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "values"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "values": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "Display badges derived from lifecycle and commercial metadata."
+          },
+          "request_format_summary": {
+            "$ref": "#/components/schemas/NonChatRequestFormatSummary"
+          },
+          "request_format_details": {
+            "$ref": "#/components/schemas/NonChatRequestFormatDetails"
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "lifecycle",
+          "commercial",
+          "badges"
+        ]
       }
     },
     "responses": {
@@ -7691,6 +10685,23 @@
               "error": {
                 "message": "API key not found",
                 "type": "invalid_request_error"
+              }
+            }
+          }
+        }
+      },
+      "MaterialLibraryUnavailable": {
+        "description": "Material library unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "error": {
+                "message": "Seedance material library request failed",
+                "type": "server_error",
+                "code": "seedance_material_library_request_failed"
               }
             }
           }

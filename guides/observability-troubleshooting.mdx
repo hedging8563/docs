@@ -1,0 +1,85 @@
+---
+title: "Observability & Troubleshooting"
+description: "Log the public AI Sonar identifiers needed for support, usage reconciliation, and async media debugging."
+---
+
+Good AI Sonar observability starts with public identifiers. Your logs should help you answer "what did the user request, what public task did AI Sonar create, and how was it billed?" without exposing sensitive provider details or sensitive user data.
+
+## Public Identifiers To Capture
+
+| Identifier | Where it appears | Use it for |
+|------------|------------------|------------|
+| `request_id` | Error bodies, dashboard logs, usage records | Request-level support and reconciliation |
+| `id` / `task_id` | Async create and status responses | Polling image, video, music, and 3D jobs |
+| `poll_url` | Async create responses | Preferred status URL |
+| `billing_transaction_id` | Non-streaming responses when settled, async task status responses, usage records, `X-Billing-Transaction-ID` | Cost reconciliation |
+| `X-Task-ID` | Async task response headers | Header-level task correlation |
+| Your own job/user ID | Your application | Joining AI Sonar activity back to the user workflow |
+
+Do not store provider task IDs, provider URLs, provider identifiers, Redis keys, or sensitive execution metadata as customer-facing records.
+
+## What To Log
+
+Log enough to diagnose the request without leaking secrets:
+
+- Endpoint, HTTP method, model, status code, timestamp, and latency.
+- Public identifiers: `request_id`, `task_id`, `poll_url`, and `billing_transaction_id` when present.
+- Sanitized request shape: which fields were present, not the full prompt or private media content.
+- Terminal async status responses, including public error fields.
+- Client retry count and whether the retry created a new task or resumed an existing one.
+
+Always redact `Authorization`, API keys, management tokens, signed URLs, private media URLs, full prompts, and user personal data unless you have explicit permission to retain them.
+
+## Troubleshooting Matrix
+
+| Symptom | First check | Useful page |
+|---------|-------------|-------------|
+| `401` or `403` | API key, management token, organization access, key scope | [Authentication](/authentication) |
+| `402` | Balance, API key spend limit, model price availability | [Billing & Pricing](/guides/billing) |
+| `429` | Account tier, endpoint rate limit, retry behavior | [Rate Limits](/guides/rate-limits) |
+| `400 invalid_request_error` | Unsupported field, wrong endpoint, missing required field, or model request mismatch | [Error Handling](/guides/error-handling) |
+| Async task cannot be found | Wrong API key, stale task ID, expired task, or non-public task ID | [Async Jobs & Polling](/guides/async-jobs-polling) |
+| Cost does not match UI | Settlement timing or comparing the wrong identifier | [Billing & Pricing](/guides/billing) |
+
+## Usage Reconciliation
+
+Use the Management API for server-side reconciliation:
+
+```bash
+curl "https://api.aisonar.dev/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video" \
+  -H "Authorization: Bearer mt-your-management-token"
+```
+
+`GET /v1/management/api-keys/{keyId}/usage` can filter by `scene`, `accessChannel`, `model`, `modelVendor`, `startDate`, and `endDate`. Use these records instead of scraping dashboard pages or relying on provider task IDs.
+
+Streaming responses may settle after the stream is sent, so a billing header can be absent even when usage is later recorded. Async media tasks may settle after terminal polling.
+
+## Support Packet Template
+
+When contacting support, include:
+
+- `request_id`.
+- `task_id` and `poll_url` for async work.
+- `billing_transaction_id` when present.
+- Endpoint, method, model, timestamp, and status code.
+- Sanitized request shape and public error body.
+- Your expected result and what the user actually saw.
+
+Do not include API keys, management tokens, private media, full prompts, provider URLs, channel IDs, or private diagnostic identifiers unless AI Sonar support explicitly asks for a redacted sample.
+
+## Operational Checks
+
+- Alert on repeated `401`, `402`, `429`, and `5xx` responses separately; they usually have different owners.
+- Track async jobs that remain non-terminal longer than your product SLA.
+- Track duplicate create attempts for the same user job ID.
+- Sample completed jobs and verify the user-visible asset, usage record, and stored task record agree.
+
+## API Reference
+
+| Topic | Reference |
+|-------|-----------|
+| Error Handling | [Error Handling](/guides/error-handling) |
+| Rate Limits | [Rate Limits](/guides/rate-limits) |
+| Billing & Pricing | [Billing & Pricing](/guides/billing) |
+| Get API Key Usage | [Get API Key Usage](/api-reference/management/get-api-key-usage) |
+| Get Task Status | [Get Task Status](/api-reference/tasks/get-task-status) |

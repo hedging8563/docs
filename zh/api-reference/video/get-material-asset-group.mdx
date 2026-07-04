@@ -1,0 +1,31 @@
+---
+title: "获取素材资源组"
+openapi: "GET /v1/videos/assets/groups/{groupId}"
+description: "通过 AI Sonar 组 ID 获取单个 Seedance 素材组。"
+---
+
+获取单个素材组。`library_type` 字段用于标识该组是虚拟人（virtual-avatar）组还是真人（real-person）组。
+
+如果您需要在上传前确认该组仍然存在且状态为 `status: "ACTIVE"`，请使用此端点。
+
+## 请求示例
+
+```bash
+curl https://api.aisonar.dev/v1/videos/assets/groups/seedance_group_virtual_123 \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+## 响应示例
+
+```json
+{
+  "id": "seedance_group_virtual_123",
+  "object": "seedance.material_asset_group",
+  "library_type": "aigc_avatar",
+  "group_name": "Product references",
+  "description": "Reusable product shots",
+  "status": "ACTIVE",
+  "metadata": null,
+  "created_at": 1782998400000
+}
+```

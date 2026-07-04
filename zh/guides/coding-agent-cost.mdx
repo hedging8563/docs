@@ -24,11 +24,11 @@ description: "实用策略帮你将 Coding Agent API 成本降低 60-90%"
 | 任务 | 推荐模型 | 成本档位 | 原因 |
 |------|---------|---------|------|
 | 架构设计 | `claude-opus-4-6`, `gpt-5.4` | $$$$ 高端 | 需要复杂推理 |
-| 代码生成 | `claude-sonnet-4-6`, `gemini-3-pro-preview` | $$$ 标准 | 质量/成本最佳平衡 |
-| 代码审查 | `claude-sonnet-4-6`, `deepseek-r1` | $$–$$$ | 模式匹配，创造性要求低 |
+| 代码生成 | `claude-sonnet-4-6`, `gemini-3.1-pro-preview` | $$$ 标准 | 质量/成本最佳平衡 |
+| 代码审查 | `claude-sonnet-4-6`, `deepseek-v4-pro` | $$–$$$ | 模式匹配，创造性要求低 |
 | Bug 修复 | `claude-sonnet-4-6`, `gpt-5-mini` | $$–$$$ | 聚焦、定义明确的任务 |
-| Tab 补全 | `gpt-5-mini`, `gemini-3-flash-preview` | $$ 经济 | 速度比深度更重要 |
-| 样板代码 | `deepseek-v3.2`, `gpt-5-mini` | $ 低价 | 简单重复的模式 |
+| Tab 补全 | `gpt-5-mini`, `gemini-3.5-flash` | $$ 经济 | 速度比深度更重要 |
+| 样板代码 | `deepseek-v4-flash`, `gpt-5-mini` | $ 低价 | 简单重复的模式 |
 
 <Tip>
 查看[模型选择指南](/zh/guides/coding-agent-models)了解详细的模型对比和各工具配置。
@@ -40,7 +40,7 @@ Coding Agent 非常适合缓存，因为它们不断重复相似的模式。
 
 ### Prompt Cache（提供方级别）
 
-[上游 Prompt Cache](/zh/guides/prompt-cache) 通过 AI Sonar 自动生效。长系统提示——Coding Agent 每次都会包含——在提供方层被缓存：
+提供方级别的 Prompt Cache 通过 AI Sonar 自动生效。长系统提示——Coding Agent 每次都会包含——在提供方层被缓存：
 
 | 提供方 | 缓存折扣 | 最低 token 数 |
 |----------|---------|-------------|

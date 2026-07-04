@@ -8,9 +8,9 @@ description: "Edit an image given a prompt and source image"
 
 Creates an edited or extended image given an original image and a prompt.
 
-The route supports both:
+This endpoint supports both:
 
-- the classic `multipart/form-data` DALL-E style upload flow documented below
+- the OpenAI-compatible `multipart/form-data` upload flow documented below
 - JSON requests that provide `image_url`, `image_urls`, or official `images` references for supported image-to-image families
 
 <Note>
@@ -20,19 +20,19 @@ The route supports both:
 
 Nano Banana reference-image requests (`nano-banana`, `nano-banana-2`, and `nano-banana-pro`) are exposed on `/v1/images/generations` with `operation: "image-to-image"` and `image_urls`, not on this `/v1/images/edits` endpoint.
 
-xAI Grok Imagine image edit models (`grok-imagine-image`, `grok-imagine-image-quality`, and legacy `grok-imagine-image-pro`) accept at most 3 source images. Requests with more than 3 source images fail before upstream forwarding with `400 too_many_images`.
+xAI Grok Imagine image edit models (`grok-imagine-image`, `grok-imagine-image-quality`, and legacy `grok-imagine-image-pro`) accept at most 3 source images. Requests with more than 3 source images fail input validation with `400 too_many_images`.
 
-Compatibility note: if `input_fidelity` is sent with `gpt-image-2`, AI Sonar removes it before forwarding because GPT Image 2 already handles image inputs at high fidelity.
+Compatibility note: if `input_fidelity` is sent with `gpt-image-2`, AI Sonar removes it because GPT Image 2 already handles image inputs at high fidelity.
 </Note>
 
 ## Request Body
 
-**Synchronous request timeout:** Some routed image providers return the final image inline and wait for generation to finish. High-resolution or high-quality requests can take close to a minute or longer, so set your HTTP client timeout to at least `120s`. If the create response includes `status: "pending"`, `task_id`, or `poll_url`, follow the returned `poll_url` instead.
+**Synchronous request timeout:** Some image requests return the final image inline and wait for generation to finish. High-resolution or high-quality requests can take close to a minute or longer, so set your HTTP client timeout to at least `120s`. If the create response includes `status: "pending"`, `task_id`, or `poll_url`, follow the returned `poll_url` instead.
 
-Remote image URLs: when the routed provider requires multipart input, AI Sonar fetches JSON `image_url`, `image_urls`, or `images[].image_url` and forwards the bytes as multipart `image` parts. URLs must be public `http`/`https`, without embedded credentials or fragments, and must not resolve to localhost, private, or reserved IP ranges; each redirect is checked again. The fetched payload must be a real PNG, JPEG, or WebP image. Limits are `50MB` per image, `200MB` total for URL-fetched images in one request, `10s` fetch timeout, and up to `3` redirects.
+Remote image URLs: when multipart input is needed, AI Sonar fetches JSON `image_url`, `image_urls`, or `images[].image_url` and sends the bytes as multipart `image` parts. URLs must be public `http`/`https`, without embedded credentials or fragments, and must not resolve to localhost, private, or reserved IP ranges; each redirect is checked again. The fetched payload must be a real PNG, JPEG, or WebP image. Limits are `50MB` per image, `200MB` total for URL-fetched images in one request, `10s` fetch timeout, and up to `3` redirects.
 
 <ParamField body="image" type="file">
-  Multipart source images. Repeat `image` to provide multiple GPT Image sources. Files must be PNG, JPEG, or WebP, up to 16 source images and `50MB` each. xAI Grok Imagine edit models use the same input fields but cap source images at 3. Legacy DALL-E 2 mask edits still expect PNG inputs with transparent areas, or a separate `mask`.
+  Multipart source images. Repeat `image` to provide multiple GPT Image sources. Files must be PNG, JPEG, or WebP, up to 16 source images and `50MB` each. xAI Grok Imagine edit models use the same input fields but cap source images at 3.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -43,8 +43,8 @@ Remote image URLs: when the routed provider requires multipart input, AI Sonar f
   An additional image whose fully transparent areas indicate where the image should be edited. Must be a valid PNG file, less than 50MB, and have the same dimensions as `image`.
 </ParamField>
 
-<ParamField body="model" type="string" default="dall-e-2">
-  The model to use for image edits. `gpt-image-2` is supported; legacy DALL-E style edits can continue to use `dall-e-2`.
+<ParamField body="model" type="string" required>
+  The model to use for image edits. Use `gpt-image-2` for GPT Image edits, or another current image-edit model returned by `GET /v1/models?recommended_for=image`.
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
@@ -52,13 +52,13 @@ Remote image URLs: when the routed provider requires multipart input, AI Sonar f
 </ParamField>
 
 <ParamField body="size" type="string">
-  The size of the generated image. For `gpt-image-2`, use `auto` or `WIDTHxHEIGHT`; dimensions must be multiples of 16, longest edge at most `3840px`, long/short ratio at most `3:1`, and total pixels between `655,360` and `8,294,400`. Legacy DALL-E edits support `256x256`, `512x512`, or `1024x1024`.
+  The size of the generated image. For `gpt-image-2`, use `auto` or `WIDTHxHEIGHT`; dimensions must be multiples of 16, longest edge at most `3840px`, long/short ratio at most `3:1`, and total pixels between `655,360` and `8,294,400`.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   The format in which generated images are returned. Must be `url` or `b64_json`; the default is `url`.
 
-  For Azure Official or Azure-compatible `gpt-image-2` routes, AI Sonar does not forward `response_format` upstream. The gateway always receives upstream image data as `b64_json`; for `url` requests it uploads every image to the CDN and returns `data[].url`. If CDN storage is unavailable or upload fails, the request fails instead of falling back to Base64. For `b64_json`, the raw Base64 is returned.
+  For Azure Official or Azure-compatible `gpt-image-2` requests, AI Sonar receives image data as `b64_json`. For `url` requests, AI Sonar uploads every image to the CDN and returns `data[].url`. If CDN storage is unavailable or upload fails, the request fails instead of being converted to a Base64 response. For `b64_json`, the raw Base64 is returned.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -95,6 +95,7 @@ Billing may reserve the estimated amount when the task is created. Completed tas
 ```bash cURL
 curl -X POST "https://api.aisonar.dev/v1/images/edits" \
   -H "Authorization: Bearer sk-your-api-key" \
+  -F "model=gpt-image-2" \
   -F "image=@sunlit_lounge.png" \
   -F "mask=@mask.png" \
   -F "prompt=A sunlit indoor lounge area with a pool" \
@@ -111,7 +112,7 @@ client = OpenAI(
 )
 
 response = client.images.edit(
-    model="dall-e-2",
+    model="gpt-image-2",
     image=open("sunlit_lounge.png", "rb"),
     mask=open("mask.png", "rb"),
     prompt="A sunlit indoor lounge area with a pool",
@@ -132,7 +133,7 @@ const client = new OpenAI({
 });
 
 const response = await client.images.edit({
-  model: 'dall-e-2',
+  model: 'gpt-image-2',
   image: fs.createReadStream('sunlit_lounge.png'),
   mask: fs.createReadStream('mask.png'),
   prompt: 'A sunlit indoor lounge area with a pool',
@@ -158,6 +159,8 @@ import (
 func main() {
     body := &bytes.Buffer{}
     writer := multipart.NewWriter(body)
+
+    writer.WriteField("model", "gpt-image-2")
 
     image, _ := os.Open("sunlit_lounge.png")
     defer image.Close()
@@ -201,6 +204,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => [
+        'model' => 'gpt-image-2',
         'image' => $image,
         'mask' => $mask,
         'prompt' => 'A sunlit indoor lounge area with a pool',
@@ -233,5 +237,5 @@ echo $data['data'][0]['url'];
 ## Notes
 
 <Note>
-  Remote image fetch failures are returned as input errors before the upstream request is sent. Unreachable URLs, timeouts, 403/404 responses, private/internal hosts, credentials or fragments in the URL, non-image content, unsupported formats, and size-limit violations return `400` or `413` and identify the `image_url` / `image_urls[n]` input. For private or header-protected assets, upload multipart `image` files directly or create `/v1/files` references.
+  Remote image fetch failures are returned as input errors before generation begins. Unreachable URLs, timeouts, 403/404 responses, private/internal hosts, credentials or fragments in the URL, non-image content, unsupported formats, and size-limit violations return `400` or `413` and identify the `image_url` / `image_urls[n]` input. For private or header-protected assets, upload multipart `image` files directly or create `/v1/files` references.
 </Note>

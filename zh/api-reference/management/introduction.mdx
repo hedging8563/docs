@@ -3,8 +3,6 @@ title: "管理 API"
 description: "使用管理令牌查询组织余额、管理组织 API Key，并查询单个 Key 的用量与账单。"
 ---
 
-<span data-mintlify-rebuild="2026-05-19-after-mdx-parse-fix" aria-hidden="true" />
-
 ## 概览
 
 管理 API 用于查询组织余额、自动化管理组织级 API Key，并查询单个 Key 维度的用量与账单，无需使用普通推理 API Key。
@@ -30,7 +28,7 @@ Authorization: Bearer mt-your-management-token
 | `/v1/management/api-keys/{keyId}/usage` | GET | 查询指定 Key 的分页用量明细 |
 | `/v1/management/api-keys/{keyId}/billing` | GET | 查询指定 Key 的聚合账单明细 |
 
-## 用量筛选契约
+## 用量筛选
 
 `GET /v1/management/api-keys/{keyId}/usage` 支持以下 query 参数：
 
@@ -38,7 +36,7 @@ Authorization: Bearer mt-your-management-token
 |------|------|---------------|------|
 | `page` | integer | 默认 `1`，最小 `1` | 1-based 页码 |
 | `limit` | integer | 默认 `50`，最小 `1`，最大 `100` | 每页条数 |
-| `logicalModel` | string | 最大长度 `100` | 请求时使用的逻辑模型名 |
+| `model` | string | 最大长度 `100` | 请求时使用的模型名 |
 | `modelVendor` | string | 最大长度 `100` | 公开模型厂商 |
 | `scene` | enum | - | `chat`、`image`、`audio`、`video`、`embedding`、`rerank`、`translation`、`music`、`3d` |
 | `accessChannel` | enum | - | `platform` 或 `byok` |
@@ -47,7 +45,7 @@ Authorization: Bearer mt-your-management-token
 
 如果同时提供 `startDate` 和 `endDate`，则 `startDate` 必须早于或等于 `endDate`。
 
-## API Key Body 契约
+## API Key 请求体
 
 ### POST /v1/management/api-keys
 
@@ -56,7 +54,7 @@ Authorization: Bearer mt-your-management-token
 | `name` | string | 必填，默认 `Default Key`，长度 `1-50` | 展示名称，服务端会先 trim |
 | `limitAmount` | number \| null | 最小 `0`，输入上限 `1000000` | `null` 或省略 = 不限额，`0` = 零额度，正数会被规范化为一个存储上限，且不能超过 `100000` USD 等值 |
 | `limitCurrency` | enum | 默认 `USD` | 仅支持 USD。发送 `CNY` 会返回 `400 currency_retired`。 |
-| `models` | string[] | 默认 `[]` | 可选的逻辑模型白名单 |
+| `models` | string[] | 默认 `[]` | 可选的模型白名单 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` 表示永不过期 |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -67,23 +65,23 @@ Authorization: Bearer mt-your-management-token
 | `name` | string | 长度 `1-50` | 更新后的展示名称 |
 | `limitAmount` | number \| null | 最小 `0`，输入上限 `1000000` | `null` = 不限额，`0` = 零额度，正数会被规范化为一个存储上限，且不能超过 `100000` USD 等值 |
 | `limitCurrency` | enum | 默认 `USD` | 仅支持 USD。发送 `CNY` 会返回 `400 currency_retired`。 |
-| `models` | string[] | - | 更新后的逻辑模型白名单 |
+| `models` | string[] | - | 更新后的模型白名单 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` 表示清除过期时间 |
 
 PATCH 请求至少需要提供一个字段。
 
-## 金额契约
+## 金额字段
 
 
 ## 报表语义
 
-- `logicalModel` 表示调用方请求的公开逻辑模型。
-- `modelVendor` 表示公开模型厂商，不是隐藏的物理路由。
+- `model` 表示调用方请求的模型。
+- `modelVendor` 表示公开模型厂商，不是提供商执行细节。
 - `scene` 表示公开请求场景，由接口或任务类型归一化得到。
 - `accessChannel=platform` 表示通过 AI Sonar 平台渠道计费。
 - `accessChannel=byok` 表示请求使用了你自己的上游 Provider Key。
 
-接口只返回公开可理解的账单与报表字段，不暴露内部路由细节或物理渠道元数据。
+接口只返回公开可理解的账单与报表字段，供应商执行细节不会出现在响应中。
 - `/usage` 的逐条明细会在底层请求完成结算后包含 `billing_transaction_id`。建议使用 `request_id` + `billing_transaction_id` 做请求级对账。
 
 ## Billing 分页说明

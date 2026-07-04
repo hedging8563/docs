@@ -1,0 +1,114 @@
+---
+title: "Image Generation"
+description: "Choose the right AI Sonar image endpoint, send model-aware requests, and handle synchronous or async image results safely."
+---
+
+AI Sonar supports text-to-image, image-to-image, and image editing through public image endpoints. Image models do not share one universal parameter set, so production clients should first choose the endpoint, then choose the model, then send only the fields supported by that model.
+
+## When To Use Each Endpoint
+
+| User workflow | Endpoint | Use when | Avoid when |
+|---------------|----------|----------|------------|
+| Text-to-image | `POST /v1/images/generations` | The user starts from a prompt only | You need an official GPT Image edit flow |
+| Image-to-image | `POST /v1/images/generations` | The model documents reference images through `operation: "image-to-image"` plus `image_url`, `image_urls`, or `reference_image_urls` | The model expects multipart edit input |
+| Image edit | `POST /v1/images/edits` | You are editing an existing image with a supported edit model such as a GPT Image family model | You are using Nano Banana style image-to-image generation |
+| Variation | `POST /v1/images/variations` | You maintain a legacy variation-compatible integration | You are building a new reference-image workflow |
+| Status | `GET /v1/tasks/{id}` | A create response returns `task_id`, `status: "pending"`, or `poll_url` | The create response already contains final `data[]` |
+
+Always send `model`. Image endpoints intentionally do not rely on a historical implicit default model for production traffic.
+
+## Pick A Model
+
+Start with model discovery, then inspect the selected model's AI Sonar model details:
+
+```bash
+curl "https://api.aisonar.dev/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer sk-your-api-key"
+```
+
+For non-chat models, the list response may include `GET /v1/models`. Model detail pages may expose the fuller `GET /v1/models/{model}`. Use those fields to confirm:
+
+- The supported operation, such as `text-to-image`, `image-to-image`, or `image-edit`.
+- The request endpoint expected by the model.
+- Which shape to use for references, such as `image_url`, `image_urls`, `reference_image_urls`, multipart `image`, or JSON `images[]`.
+- Whether the model accepts `size`, `aspect_ratio`, `resolution`, `quality`, `background`, `output_format`, or `response_format`.
+
+## Request Shape Rules
+
+- `gpt-image-2` style requests use OpenAI-like `size`, `quality`, and edit fields. Leave optional fields out when you want the model or AI Sonar to use automatic defaults.
+- Gemini and Nano Banana image families usually use `aspect_ratio`; only send `resolution` when the model details expose it.
+- Nano Banana image-to-image belongs on `/v1/images/generations` with `operation: "image-to-image"` and reference image URLs.
+- `/v1/images/generations` does not accept top-level `images[]` or `file_id`; those are edit-flow shapes.
+- Remote image references must be public `http` or `https` URLs. Do not send private network URLs, embedded credentials, URL fragments, or signed URLs that may expire before processing starts.
+
+## Text-To-Image Example
+
+```bash
+curl https://api.aisonar.dev/v1/images/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "A clean product photo of a ceramic coffee cup on a walnut desk",
+    "size": "1024x1024",
+    "response_format": "url"
+  }'
+```
+
+## Reference-Image Example
+
+```bash
+curl https://api.aisonar.dev/v1/images/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "nano-banana",
+    "operation": "image-to-image",
+    "prompt": "Keep the product shape, change the background to a bright studio setup",
+    "image_urls": ["https://example.com/input/product.png"],
+    "aspect_ratio": "1:1"
+  }'
+```
+
+## Handling Results
+
+Image responses can be synchronous or asynchronous:
+
+- Synchronous responses return final `data[]` with `url` or `b64_json`.
+- Async responses return `id`, `task_id`, `status`, and usually `poll_url`.
+- Prefer `poll_url` when it is present. If you need a fixed route, poll `GET /v1/tasks/{id}`.
+- Use synchronous requests when you specifically need `b64_json`; async image results are URL-oriented.
+
+```bash
+curl "https://api.aisonar.dev/v1/tasks/$TASK_ID" \
+  -H "Authorization: Bearer sk-your-api-key"
+```
+
+Persist the returned image URL, task ID, model, and your own user/job ID. Do not keep polling after a terminal status.
+
+## Production Checklist
+
+- Validate user inputs before calling AI Sonar: prompt length, image count, URL reachability, and file type.
+- Set HTTP timeouts high enough for synchronous high-resolution requests. Use async mode where available for long work.
+- Store `request_id`, `task_id`, `poll_url`, model, endpoint, and sanitized request shape for support.
+- On client timeout, check whether a task was created before retrying the create request.
+- Reconcile cost with usage records and `billing_transaction_id` when present, not with provider task IDs.
+
+## Common Errors
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| `400` with `param: "model"` | Missing explicit model | Query `/v1/models?recommended_for=image` and send `model` |
+| Unsupported field | Field is not documented for that model | Remove the field or choose a model/endpoint that documents it |
+| No `b64_json` on async result | Async image tasks return URL-oriented results | Use synchronous mode for base64 output |
+| Reference image rejected | Wrong endpoint or private/expired URL | Match the model's documented reference shape and use reachable URLs |
+
+## API Reference
+
+| Topic | Reference |
+|-------|-----------|
+| Create Image | [Create Image](/api-reference/images/create-image) |
+| Edit Image | [Edit Image](/api-reference/images/edit-image) |
+| Create Image Variation | [Create Image Variation](/api-reference/images/create-variation) |
+| Get Image Status | [Get Image Status](/api-reference/images/get-image-status) |
+| Get Task Status | [Get Task Status](/api-reference/tasks/get-task-status) |

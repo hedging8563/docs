@@ -18,24 +18,23 @@ Compatibility note: if `input_fidelity` is sent with `gpt-image-2`, AI Sonar rem
 
 Google Gemini image-family models do not share the same selector contract:
 
-- `gemini-3.1-flash-image-preview`, `gemini-3-pro-image-preview`, and `nano-banana-pro` support `aspect_ratio` plus `resolution` (`1k`, `2k`, `4k`) for their public text-to-image and image-edit/image-to-image operations.
+- `gemini-3.1-flash-image`, `gemini-3-pro-image`, and `nano-banana-pro` support `aspect_ratio` plus `resolution` (`1k`, `2k`, `4k`) for their public text-to-image and image-edit/image-to-image operations.
 - `nano-banana-2` supports `aspect_ratio` plus `resolution` (`1k`, `2k`, `4k`) for text-to-image generation only in the current AI Sonar contract.
 - `gemini-2.5-flash-image`, `nano-banana`, and `nano-banana-edit` support `aspect_ratio` but do not expose public `resolution` selection.
-- `gemini-2.0-flash-preview-image-generation` is documented here as prompt-only text-to-image.
 - For Nano Banana reference-image requests, use `nano-banana-edit` or `nano-banana-pro` on this endpoint (`/v1/images/generations`) with `operation: "image-to-image"` and `image_urls`. Do not send Nano Banana reference-image requests to `/v1/images/edits`.
-- For Nano Banana image-to-image requests, `nano-banana-pro` may include `resolution` (`1k`, `2k`, `4k`); `nano-banana-edit` must omit it. `nano-banana` and `nano-banana-2` are text-to-image models in the current public contract.
+- For Nano Banana image-to-image requests, `nano-banana-pro` may include `resolution` (`1k`, `2k`, `4k`); `nano-banana-edit` must omit it. `nano-banana` and `nano-banana-2` are text-to-image models in the current model details.
 - Reference images on this endpoint can be supplied as JSON `image_url` / `image_urls`, or as a multipart `image` file. `images[]` and `file_id` are not accepted on `/v1/images/generations`; create `/v1/files` references only for `/v1/images/edits` models that document `images[].file_id`.
 
 For Google image families, prefer `aspect_ratio` and only send `resolution` when the model explicitly supports it.
 
-xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality`, and legacy `grok-imagine-image-pro`) support `aspect_ratio` plus `resolution` (`1k`, `2k`). `grok-imagine-image-pro` is retained as a compatibility ID and routes upstream to `grok-imagine-image-quality`.
+xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality`, and legacy `grok-imagine-image-pro`) support `aspect_ratio` plus `resolution` (`1k`, `2k`). `grok-imagine-image-pro` is retained as a compatibility ID for `grok-imagine-image-quality`.
 
 ## Request Body
 
-**Synchronous request timeout:** Some routed image providers return the final image inline and wait for generation to finish. High-resolution or high-quality requests can take close to a minute or longer, so set your HTTP client timeout to at least `120s`. If the create response includes `status: "pending"`, `task_id`, or `poll_url`, follow the returned `poll_url` instead.
+**Synchronous request timeout:** Some image requests return the final image inline and wait for generation to finish. High-resolution or high-quality requests can take close to a minute or longer, so set your HTTP client timeout to at least `120s`. If the create response includes `status: "pending"`, `task_id`, or `poll_url`, follow the returned `poll_url` instead.
 
-<ParamField body="model" type="string" default="dall-e-3">
-  Model to use (e.g., `gpt-image-2`, `dall-e-3`, `flux-pro`, `midjourney`).
+<ParamField body="model" type="string" required>
+  Model to use (for example, `gpt-image-2`, `flux-pro`, `qwen-image-plus`, or `nano-banana-pro`). Query `GET /v1/models?recommended_for=image` for the current recommended list.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -65,7 +64,7 @@ xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality
 <ParamField body="size" type="string" default="1024x1024">
   Image size. Use this for OpenAI-style image families and other models that accept exact pixel sizes.
 
-  For `gpt-image-2`, `size` accepts `auto` or `WIDTHxHEIGHT`. Custom dimensions must both be multiples of 16, the longest edge must be at most `3840px`, the long/short ratio must be at most `3:1`, and total pixels must be between `655,360` and `8,294,400`. `aspect_ratio` and `resolution` are not part of the current AI Sonar public contract for `gpt-image-2`.
+  For `gpt-image-2`, `size` accepts `auto` or `WIDTHxHEIGHT`. Custom dimensions must both be multiples of 16, the longest edge must be at most `3840px`, the long/short ratio must be at most `3:1`, and total pixels must be between `655,360` and `8,294,400`. `aspect_ratio` and `resolution` are not part of the current AI Sonar model details for `gpt-image-2`.
 
   For Google Gemini image families, `size` is treated as a compatibility alias that maps onto the model's public `aspect_ratio` and, where supported, `resolution` contract. Prefer sending `aspect_ratio` directly for those models.
 </ParamField>
@@ -79,25 +78,25 @@ xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality
 <ParamField body="resolution" type="string">
   Model-dependent output resolution selector.
 
-  Supported on `gemini-3.1-flash-image-preview` and `gemini-3-pro-image-preview` for text-to-image and image-edit, on `nano-banana-pro` for text-to-image and image-to-image, and on `nano-banana-2` for text-to-image only. Typical values are `1k`, `2k`, and `4k`. Do not send this parameter to ratio-only Gemini image families unless the model explicitly documents it. For xAI Grok Imagine image models, use `1k` or `2k`.
+  Supported on `gemini-3.1-flash-image` and `gemini-3-pro-image` for text-to-image and image-edit, on `nano-banana-pro` for text-to-image and image-to-image, and on `nano-banana-2` for text-to-image only. Typical values are `1k`, `2k`, and `4k`. Do not send this parameter to ratio-only Gemini image families unless the model explicitly documents it. For xAI Grok Imagine image models, use `1k` or `2k`.
 </ParamField>
 
 <ParamField body="quality" type="string" default="standard">
-  Image quality. DALL-E models use `standard` or `hd`; GPT Image models such as `gpt-image-2` use `auto`, `low`, `medium`, or `high`.
+  Image quality. GPT Image models such as `gpt-image-2` use `auto`, `low`, `medium`, or `high`. Other image families may use provider-specific values; check the selected model metadata before sending non-default values.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   Response format: `url` or `b64_json`. The default is `url`.
 
-  For Azure Official or Azure-compatible `gpt-image-2` routes, AI Sonar does not forward `response_format` upstream. The gateway always receives upstream image data as `b64_json`; for `url` requests it uploads every image to the CDN and returns `data[].url`. If CDN storage is unavailable or upload fails, the request fails instead of falling back to Base64. For `b64_json`, the raw Base64 is returned.
+  For Azure Official or Azure-compatible `gpt-image-2` requests, AI Sonar receives image data as `b64_json`. For `url` requests, AI Sonar uploads every image to the CDN and returns `data[].url`. If CDN storage is unavailable or upload fails, the request fails instead of being converted to a Base64 response. For `b64_json`, the raw Base64 is returned.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
   Set to `true` with `gpt-image-2` or official FLUX/BFL image models to create a task first. Completed async image tasks return URLs regardless of the requested `response_format`; use synchronous requests when you need `b64_json`.
 </ParamField>
 
-<ParamField body="style" type="string" default="vivid">
-  Style for DALL-E 3: `vivid` or `natural`.
+<ParamField body="style" type="string">
+  Optional style selector. Only send this when the selected model explicitly documents it; omit it for `gpt-image-2` unless the model metadata says otherwise.
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -118,7 +117,7 @@ xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality
   Each object contains:
   - `url` (string): URL of the generated image
   - `b64_json` (string): Base64-encoded image (if requested)
-  - `revised_prompt` (string): The prompt used (DALL-E 3)
+  - `revised_prompt` (string): Optional prompt revision, when the selected model returns one
 </ResponseField>
 
 ### Async Task Response
@@ -157,7 +156,7 @@ curl -X POST "https://api.aisonar.dev/v1/images/generations" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gemini-3-pro-image-preview",
+    "model": "gemini-3-pro-image",
     "prompt": "A cinematic portrait of a white cat sitting on a rainy windowsill",
     "aspect_ratio": "16:9",
     "resolution": "2k",
@@ -174,7 +173,7 @@ client = OpenAI(
 )
 
 response = client.images.generate(
-    model="gemini-3-pro-image-preview",
+    model="gemini-3-pro-image",
     prompt="A cinematic portrait of a white cat sitting on a rainy windowsill",
     aspect_ratio="16:9",
     resolution="2k",
@@ -193,7 +192,7 @@ const client = new OpenAI({
 });
 
 const response = await client.images.generate({
-  model: 'gemini-3-pro-image-preview',
+  model: 'gemini-3-pro-image',
   prompt: 'A cinematic portrait of a white cat sitting on a rainy windowsill',
   aspect_ratio: '16:9',
   resolution: '2k',
@@ -215,7 +214,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'gemini-3-pro-image-preview',
+        'model' => 'gemini-3-pro-image',
         'prompt' => 'A cinematic portrait of a white cat sitting on a rainy windowsill',
         'aspect_ratio' => '16:9',
         'resolution' => '2k',
@@ -296,15 +295,16 @@ curl -X POST "https://api.aisonar.dev/v1/images/generations" \
 
 ## Available Models
 
+These are current example models, not a fixed catalog. Query `GET /v1/models?recommended_for=image` or the Models page for the latest availability and pricing.
+
 | Model | Type | Features |
 |-------|------|----------|
-| `dall-e-3` | Usually inline | Best quality, prompt enhancement |
-| `dall-e-2` | Usually inline | Faster, more affordable |
+| `gpt-image-2` | Inline or task-based | Token-priced GPT Image model, flexible sizes |
 | `flux-pro` | Often task-based | Photorealistic, high quality |
-| `flux-schnell` | Usually inline | Very fast |
-| `midjourney` | Often task-based | Artistic style |
-| `ideogram-v3` | Often task-based | Best text rendering |
-| `stable-diffusion-3` | Usually inline | Open source, customizable |
+| `qwen-image-plus` | Often task-based | Strong text rendering and prompt following |
+| `nano-banana-pro` | Often task-based | Reference-image workflows and high-resolution output |
+| `grok-imagine-image` | Often task-based | xAI image generation with aspect ratio and resolution selection |
+| `ideogram-v3` | Often task-based | Strong text rendering |
 
 Do not hard-code a model as always synchronous or always asynchronous. If the create response returns `status: "pending"`, follow `poll_url` and poll until completion.
 
@@ -316,7 +316,7 @@ For image models, always check whether the response contains `status: "pending"`
 import requests
 import time
 
-def generate_image(prompt, model="midjourney"):
+def generate_image(prompt, model="flux-pro"):
     # Create image request
     response = requests.post(
         "https://api.aisonar.dev/v1/images/generations",
@@ -350,6 +350,6 @@ def generate_image(prompt, model="midjourney"):
         return data["data"][0]["url"]
 
 # Usage
-url = generate_image("a beautiful sunset over mountains", model="midjourney")
+url = generate_image("a beautiful sunset over mountains", model="flux-pro")
 print(f"Generated image: {url}")
 ```

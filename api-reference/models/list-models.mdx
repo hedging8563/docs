@@ -18,17 +18,20 @@ description: "Lists all available models"
   - `object` (string): `model`
   - `created` (integer): Creation timestamp
   - `owned_by` (string): Model provider
-  - `aisonar.category` (string): Public model category
-  - `aisonar.pricing_unit` (string or `null`): Public pricing unit when available
-  - `aisonar.capability_flags` (object or `null`): Public capability summary
-  - `aisonar.supported_operations` (array or `null`): Public non-chat operations for the model
-  - `aisonar.pricing_provenance` (object or `null`): Public pricing source metadata
-  - `aisonar.public_contract_summary` (object or `null`): Lightweight non-chat discovery summary with only `public_operations` and `request_endpoint`
-  - `aisonar.agent_preferences` (object): Only returned when `recommended_for` is present
+  - `tokenlab.category` (string): Public model category
+  - `tokenlab.pricing_unit` (string or `null`): Public pricing unit when available
+  - `tokenlab.capability_flags` (object or `null`): Public capability summary
+  - `tokenlab.supported_operations` (array or `null`): Public non-chat operations for the model
+  - `tokenlab.pricing_provenance` (object or `null`): Public pricing source metadata
+  - `tokenlab.request_format_summary` (object or `null`): Lightweight non-chat discovery summary with `public_operations`, `request_endpoint`, and `request_endpoint_by_operation`
+  - `tokenlab.agent_preferences` (object): Only returned when `recommended_for` is present
+  - `tokenlab.lifecycle` (object): Lifecycle stage, release/deprecation dates, replacement model, and latest badge derivation
+  - `tokenlab.commercial` (object): User charge policy, free reason, and optional free-until timestamp
+  - `tokenlab.badges` (array): Display badges derived from lifecycle and commercial metadata
 </ResponseField>
 
 <Note>
-`GET /v1/models` is optimized for discovery. Detail-only metadata such as `capability_flags`, `pricing_provenance`, and the full `public_contract` live on `GET /v1/models/{model}`.
+`GET /v1/models` is optimized for discovery. Detail-only metadata such as `capability_flags`, `pricing_provenance`, and the full `request_format_details` live on `GET /v1/models/{model}`.
 </Note>
 
 ## Query Parameters
@@ -163,7 +166,7 @@ foreach ($data['data'] as $model) {
       "owned_by": "anthropic"
     },
     {
-      "id": "gemini-2.5-flash",
+      "id": "gemini-3.5-flash",
       "object": "model",
       "created": 1706000000,
       "owned_by": "google"
@@ -187,13 +190,13 @@ anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
 
 | Provider | Example Models |
 |----------|----------------|
-| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, dall-e-3 |
+| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
 | `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
-| `google` | gemini-3-pro-preview, gemini-3-flash-preview, gemini-2.5-pro |
+| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
 | `deepseek` | deepseek-r1, deepseek-v3-2 |
 | `xai` | grok-4.1 |
 | `moonshot` | kimi-k2.5 |
-| `minimax` | minimax-m2.1 |
+| `minimax` | minimax-m3 |
 | `meta` | llama-3.3-70b, llama-3.1-405b |
 
 ## Agent Recommendation Example
@@ -207,7 +210,7 @@ anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
       "object": "model",
       "created": 1706000000,
       "owned_by": "google",
-      "aisonar": {
+      "tokenlab": {
         "category": "image",
         "pricing_unit": "per_request",
         "agent_preferences": {
@@ -218,9 +221,7 @@ anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
             "status": "ready",
             "updated_at": "2026-03-28T12:00:00.000Z",
             "basis": {
-              "score_source": "clickhouse_24h",
-              "channel_id": null,
-              "physical_model": null
+              "source": "recent_activity_24h"
             }
           }
         }

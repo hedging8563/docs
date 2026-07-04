@@ -1,0 +1,104 @@
+---
+title: "Migration Guides"
+description: "Move OpenAI, Anthropic, Gemini, and media workloads to AI Sonar with small, production-safe changes."
+---
+
+AI Sonar is multi-format: you can keep OpenAI-compatible clients, Anthropic-native Messages calls, Gemini-native REST calls, and media endpoints in their natural shapes. The safest migration is not to translate every workload into one universal format. Choose the route that owns the behavior your application needs.
+
+## Route Mapping
+
+| Existing workload | AI Sonar base URL | Primary endpoint | Migration note |
+|-------------------|-------------------|------------------|----------------|
+| OpenAI Chat Completions | `https://api.aisonar.dev/v1` | `/chat/completions` | Smallest change for OpenAI-compatible chat and function calling |
+| OpenAI Responses | `https://api.aisonar.dev/v1` | `/responses` | Use when your app depends on Responses-specific input, tools, or output handling |
+| Anthropic SDK | `https://api.aisonar.dev` | `/v1/messages` | Do not append `/v1` to the SDK base URL |
+| Gemini REST | `https://api.aisonar.dev` | `/v1beta/models/:model:generateContent` | Keep Gemini-native fields on the Gemini route |
+| Media generation | `https://api.aisonar.dev/v1` | `/images`, `/videos`, `/music`, `/3d` | Discover models with `recommended_for` and expect async polling where documented |
+| Management and billing | `https://api.aisonar.dev/v1` | `/management/...` | Use management tokens for server-side usage and billing reconciliation |
+
+## OpenAI-Compatible Migration
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.aisonar.dev/v1",
+)
+
+response = client.chat.completions.create(
+    model="gpt-5.4",
+    messages=[{"role": "user", "content": "Hello from AI Sonar"}],
+)
+```
+
+Keep your existing retry, timeout, and streaming code, but validate model IDs with `GET /v1/models` before production traffic. For image generation, send `model` explicitly and read the image guide because image models differ more than chat models.
+
+## Anthropic Migration
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.aisonar.dev",
+)
+
+message = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain AI Sonar in one sentence."}],
+)
+```
+
+Use `/v1/messages` for Claude-native tool use, thinking flows, and Anthropic message semantics. Do not translate Anthropic-only fields through Chat Completions unless you intentionally want an OpenAI-compatible behavior change.
+
+## Gemini Migration
+
+```bash
+curl "https://api.aisonar.dev/v1beta/models/gemini-3.5-flash:generateContent" \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
+```
+
+Keep Gemini built-in tools, File API references, cached contents, function declarations, and native content parts on `/v1beta` when your app depends on Gemini-native behavior.
+
+## Media Migration
+
+1. Query `GET /v1/models?recommended_for=image|video|music|3d`.
+2. Read `GET /v1/models` in list responses and the full `GET /v1/models/{model}` where available.
+3. Send an explicit `model`, especially for image endpoints.
+4. Store `task_id`, `poll_url`, endpoint, model, and your own job ID for async jobs.
+5. Reconcile costs through usage records and `billing_transaction_id`, not provider task IDs.
+
+Media workloads need their own rollout plan because latency, retries, and final assets behave differently from chat completions.
+
+## Production Rollout Plan
+
+| Phase | Goal | Checks |
+|-------|------|--------|
+| 1. Inventory | List endpoints, models, request fields, streaming/async behavior, and billing owner | No hidden provider-only fields are assumed public |
+| 2. Single-route pilot | Move one endpoint and one model family | Response shape, cost, and logs match expectations |
+| 3. Shadow or sample | Compare selected outputs against the previous provider | User-visible quality and latency are acceptable |
+| 4. Gradual rollout | Increase traffic by key, org, or feature flag | Watch `4xx`, `5xx`, latency, balance, and duplicate async jobs |
+| 5. Cleanup | Remove old provider path only after stable usage | Rollback path and support playbook are documented |
+
+## Migration Pitfalls
+
+- Do not put every model behind one OpenAI Chat Completions path if your app needs native Anthropic, Gemini, or Responses behavior.
+- Do not assume old image defaults. Send `model` explicitly.
+- Do not retry async create requests without checking whether a task was already created.
+- Do not expose provider-specific identifiers in your logs or UI.
+- Do not compare billing with provider task IDs. Use AI Sonar usage records.
+
+## API Reference
+
+| Topic | Reference |
+|-------|-----------|
+| Multi-Format API | [Multi-Format API](/guides/api-formats) |
+| OpenAI SDK | [OpenAI SDK](/integrations/openai-sdk) |
+| Anthropic SDK | [Anthropic SDK](/integrations/anthropic-sdk) |
+| Gemini Native | [Gemini Native API](/api-reference/gemini/generate-content) |
+| Image Generation | [Image Generation](/guides/image-generation) |
+| Async Jobs & Polling | [Async Jobs & Polling](/guides/async-jobs-polling) |

@@ -1,0 +1,33 @@
+---
+title: "Create Material Asset Group"
+openapi: "POST /v1/videos/assets/groups"
+description: "Creates a Seedance virtual-avatar material group."
+---
+
+Create a `library_type: "aigc_avatar"` material group. Use this endpoint for virtual avatars, products, styles, and other reusable references that do not require real-person verification.
+
+New real-person material groups are created through [real-person material verification](/api-reference/video/create-real-person-verification-session) and cannot be created directly with this endpoint.
+
+## Example Request
+
+```bash
+curl https://api.aisonar.dev/v1/videos/assets/groups \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+```
+
+## Example Response
+
+```json
+{
+  "id": "seedance_group_virtual_123",
+  "object": "seedance.material_asset_group",
+  "library_type": "aigc_avatar",
+  "group_name": "Product references",
+  "description": "Reusable product shots",
+  "status": "ACTIVE",
+  "metadata": null,
+  "created_at": 1782998400000
+}
+```

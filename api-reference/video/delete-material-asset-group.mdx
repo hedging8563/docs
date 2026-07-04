@@ -1,0 +1,26 @@
+---
+title: "Delete Material Asset Group"
+openapi: "DELETE /v1/videos/assets/groups/{groupId}"
+description: "Deletes a Seedance material group owned by the current organization."
+---
+
+Delete a material group and the AI Sonar material assets inside it. This cannot be undone.
+
+If the AI Sonar material library cannot complete the deletion because the current authorization state does not allow it, AI Sonar returns a neutral material-library error. After deletion, the group and its assets can no longer be used in video generation.
+
+## Example Request
+
+```bash
+curl https://api.aisonar.dev/v1/videos/assets/groups/seedance_group_virtual_123 \
+  -X DELETE \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+## Example Response
+
+```json
+{
+  "deleted": true,
+  "id": "seedance_group_virtual_123"
+}
+```

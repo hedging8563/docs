@@ -14,6 +14,7 @@ description: "Retrieves a model instance"
 
 <ResponseField name="id" type="string">
   Model identifier.
+It also includes `lifecycle`, `commercial`, and `badges`, which describe deprecation/retirement state, user charge policy, and display badges.
 </ResponseField>
 
 <ResponseField name="object" type="string">
@@ -28,8 +29,8 @@ description: "Retrieves a model instance"
   Model provider.
 </ResponseField>
 
-<ResponseField name="aisonar" type="object">
-  AI Sonar-specific public metadata. The detail route can include `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `public_contract_summary`, the full `public_contract`, and scene-level `agent_preferences` for non-chat recommendation snapshots.
+<ResponseField name="tokenlab" type="object">
+  AI Sonar-specific public metadata. The detail route can include `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, the full `request_format_details`, and scene-level `agent_preferences` for non-chat recommendation snapshots.
 </ResponseField>
 
 <RequestExample>
@@ -130,7 +131,7 @@ If the model doesn't exist, you'll receive a 404 error:
 
 ## Non-Chat Recommendation Metadata
 
-For non-chat models, the detail route also returns `aisonar.agent_preferences.<scene>`.
+For non-chat models, the detail route also returns `tokenlab.agent_preferences.<scene>`.
 
 Use it to inspect:
 
@@ -140,14 +141,14 @@ Use it to inspect:
 - `status`
 - `updated_at`
 
-The public response intentionally keeps `basis.channel_id` and `basis.physical_model` as `null` so agents can consume the recommendation signal without learning internal routing identifiers.
+The public response summarizes recommendation provenance with `basis.source` and does not expose routing identifiers.
 
 ## Public Detail Metadata
 
 Compared with `GET /v1/models`, the detail route can additionally return:
 
-- `aisonar.capability_flags`
-- `aisonar.supported_operations`
-- `aisonar.pricing_provenance`
-- `aisonar.public_contract_summary`
-- `aisonar.public_contract`
+- `tokenlab.capability_flags`
+- `tokenlab.supported_operations`
+- `tokenlab.pricing_provenance`
+- `tokenlab.request_format_summary`
+- `tokenlab.request_format_details`

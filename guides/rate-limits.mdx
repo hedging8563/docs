@@ -12,11 +12,11 @@ AI Sonar implements rate limits to ensure fair usage and platform stability. Lim
 | Tier | Requests/min | Description |
 |------|-------------|-------------|
 | **User** | 1,000 | Default tier for all accounts |
-| **Partner** | 3,000 | For integration partners |
+| **Partner** | 10,000 | For integration partners |
 | **VIP** | 10,000 | High-volume users |
 
 <Note>
-  Rate limits are subject to change. Contact support@aisonar.dev for custom limits.
+  Rate limits are subject to change. Contact  for custom limits.
 </Note>
 
 ## Rate Limit Response
@@ -82,7 +82,7 @@ import asyncio
 from collections import deque
 
 class RateLimitedClient:
-    def __init__(self, requests_per_minute=60):
+    def __init__(self, requests_per_minute=1000):
         self.rpm = requests_per_minute
         self.interval = 60 / requests_per_minute
         self.last_request = 0
@@ -136,7 +136,7 @@ def process_batch(items, batch_size=50, delay=1):
   </Accordion>
 
   <Accordion title="Contact us for higher limits">
-    If you need higher limits, contact support@aisonar.dev.
+    If you need higher limits, contact .
   </Accordion>
 </AccordionGroup>
 
@@ -148,7 +148,7 @@ To request a tier upgrade:
 2. Go to **Settings → Account**
 3. Contact support with your use case
 
-Or email support@aisonar.dev with:
+Or email  with:
 - Your account email
 - Expected request volume
 - Use case description

@@ -5,13 +5,14 @@ description: "Text/Image to 3D models"
 
 ## Overview
 
-AI Sonar provides access to Tripo3D models. Total: **1 models** available.
+AI Sonar provides access to Tripo3D models. Total: **2 models** available.
 
 ## 3D Generation
 
 | Model ID | Pricing |
 |----------|--------|
-| `tripo3d-v2.5` | See dashboard |
+| `tripo-h3.1` | See dashboard |
+| `tripo-p1.0` | See dashboard |
 
 
 ## Usage
@@ -25,7 +26,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="tripo3d-v2.5",
+    model="tripo-h3.1",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
