@@ -2684,10 +2684,6 @@
                   "continue_at": {
                     "type": "number",
                     "description": "Timestamp in seconds for continuation flows."
-                  },
-                  "user": {
-                    "type": "string",
-                    "description": "End-user identifier."
                   }
                 }
               }
@@ -8462,8 +8458,7 @@
             "type": "string",
             "enum": [
               "/v1/chat/completions",
-              "/v1/embeddings",
-              "/v1/responses"
+              "/v1/embeddings"
             ]
           },
           "errors": {
@@ -8644,8 +8639,7 @@
             "type": "string",
             "enum": [
               "/v1/chat/completions",
-              "/v1/embeddings",
-              "/v1/responses"
+              "/v1/embeddings"
             ]
           },
           "completion_window": {
