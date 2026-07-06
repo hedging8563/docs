@@ -69,7 +69,7 @@ OpenCode 当前文档建议通过 `opencode.json` 或 `opencode.jsonc` 配置提
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "tokenlab": {
+    "aisonar": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "AI Sonar",
       "options": {
@@ -86,7 +86,7 @@ OpenCode 当前文档建议通过 `opencode.json` 或 `opencode.jsonc` 配置提
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "aisonar/gpt-5.4"
 }
 ```
 
@@ -111,7 +111,7 @@ opencode "Explain this codebase"
 **指定模型：**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode --model aisonar/gpt-5.4 "Fix the bugs in main.py"
 ```
 
 ## 可用模型

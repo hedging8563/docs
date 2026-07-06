@@ -33,7 +33,7 @@ It also includes `lifecycle`, `commercial`, and `badges`, which describe depreca
   Model provider.
 </ResponseField>
 
-<ResponseField name="tokenlab" type="object">
+<ResponseField name="aisonar" type="object">
   AI Sonar-specific public metadata. The detail route can include `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, the full `request_format_details`, and scene-level `agent_preferences` for non-chat recommendation snapshots.
 </ResponseField>
 
@@ -135,7 +135,7 @@ If the model doesn't exist, you'll receive a 404 error:
 
 ## Non-Chat Recommendation Metadata
 
-For non-chat models, the detail route also returns `tokenlab.agent_preferences.<scene>`.
+For non-chat models, the detail route also returns `aisonar.agent_preferences.<scene>`.
 
 Use it to inspect:
 
@@ -151,8 +151,8 @@ The public response summarizes recommendation provenance with `basis.source` and
 
 Compared with `GET /v1/models`, the detail route can additionally return:
 
-- `tokenlab.capability_flags`
-- `tokenlab.supported_operations`
-- `tokenlab.pricing_provenance`
-- `tokenlab.request_format_summary`
-- `tokenlab.request_format_details`
+- `aisonar.capability_flags`
+- `aisonar.supported_operations`
+- `aisonar.pricing_provenance`
+- `aisonar.request_format_summary`
+- `aisonar.request_format_details`

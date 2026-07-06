@@ -13,7 +13,7 @@ description: "配置 OpenAI Codex CLI 以使用 AI Sonar API"
 **支持情况**：在模型/路径限制下受支持
 </Note>
 
-OpenAI Codex 是一个开源的命令行工具 (CLI)，作为轻量级的编码代理，能够在终端中读取、修改和运行代码。它基于 GPT 模型构建，并针对代码生成进行了优化。
+OpenAI Codex 是一个开源的命令行工具 (CLI)，作为轻量级的编码 Agent，能够在终端中读取、修改和运行代码。它基于 GPT 模型构建，并针对代码生成进行了优化。
 
 对于 AI Sonar，Codex CLI 可以使用 `/v1/responses`，但您应将其视为一个高级兼容路径。某些仅适用于 Responses 的功能并不保证在每个模型和路由路径上可用。
 
@@ -66,7 +66,7 @@ source ~/.zshrc  # or source ~/.bashrc
 编辑 `~/.codex/config.toml`：
 
 ```toml
-model_provider = "tokenlab"
+model_provider = "aisonar"
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
@@ -80,7 +80,7 @@ disable_response_storage = false
 personality = "friendly"
 service_tier = "fast"
 
-[model_providers.tokenlab]
+[model_providers.aisonar]
 env_key = "OPENAI_API_KEY"
 name = "AI Sonar"
 base_url = "https://api.aisonar.dev/v1"
@@ -192,7 +192,7 @@ cat main.py | codex "Explain what this code does"
   <Accordion title="连接错误">
     - 验证 `base_url` 在 config.toml 中是否为准确的 `https://api.aisonar.dev/v1`
     - 检查网络连接
-    - 确保没有代理干扰
+    - 确保没有网络转发配置干扰
   </Accordion>
 
   <Accordion title="身份验证失败">

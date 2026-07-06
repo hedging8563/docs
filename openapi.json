@@ -3476,7 +3476,7 @@
                     },
                     "protocol": {
                       "type": "string",
-                      "example": "tokenlab_realtime_proxy"
+                      "example": "aisonar_realtime_session"
                     }
                   }
                 }
@@ -6990,7 +6990,7 @@
             "description": "Model provider",
             "example": "openai"
           },
-          "tokenlab": {
+          "aisonar": {
             "$ref": "#/components/schemas/ModelPlatformExtension"
           },
           "lemondata": {
@@ -7000,7 +7000,7 @@
               }
             ],
             "deprecated": true,
-            "description": "Deprecated compatibility alias. Retained for existing clients."
+            "description": "Deprecated alias for aisonar. Retained for compatibility during the AI Sonar migration."
           }
         },
         "required": [
@@ -7008,7 +7008,7 @@
           "object",
           "created",
           "owned_by",
-          "tokenlab"
+          "aisonar"
         ],
         "additionalProperties": false
       },
@@ -7815,9 +7815,9 @@
               }
             ],
             "deprecated": true,
-            "description": "Deprecated compatibility alias. Retained for existing clients."
+            "description": "Deprecated alias for aisonar. Retained for compatibility during the AI Sonar migration."
           },
-          "tokenlab": {
+          "aisonar": {
             "$ref": "#/components/schemas/ModelListPlatformExtension"
           }
         },
@@ -7826,7 +7826,7 @@
           "object",
           "created",
           "owned_by",
-          "tokenlab"
+          "aisonar"
         ],
         "additionalProperties": false
       },

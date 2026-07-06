@@ -18,26 +18,26 @@ description: "列出所有可用模型"
   - `object` (string): `model`
   - `created` (integer): 创建时间戳
   - `owned_by` (string): 模型提供方
-  - `tokenlab.aliases` (array): 同一模型的公开别名
-  - `tokenlab.pricing` (object): 公开基础价格摘要
-  - `tokenlab.capabilities` (array): 公开能力标签
-  - `tokenlab.max_input_tokens` (number or `null`): 可用时的输入上下文上限
-  - `tokenlab.max_output_tokens` (number or `null`): 可用时的输出上限
-  - `tokenlab.category` (string): 公开模型分类
-  - `tokenlab.pricing_unit` (string): 公开定价单位
-  - `tokenlab.has_complex_pricing` (boolean): 价格是否有模型专属维度
-  - `tokenlab.lifecycle`（object）：生命周期状态、发布日期/弃用日期、替代模型和 latest 标签来源
-  - `tokenlab.commercial`（object）：用户收费策略、免费原因和可选免费截止时间
-  - `tokenlab.badges`（array）：由生命周期和商业策略派生的展示标签
+  - `aisonar.aliases` (array): 同一模型的公开别名
+  - `aisonar.pricing` (object): 公开基础价格摘要
+  - `aisonar.capabilities` (array): 公开能力标签
+  - `aisonar.max_input_tokens` (number or `null`): 可用时的输入上下文上限
+  - `aisonar.max_output_tokens` (number or `null`): 可用时的输出上限
+  - `aisonar.category` (string): 公开模型分类
+  - `aisonar.pricing_unit` (string): 公开定价单位
+  - `aisonar.has_complex_pricing` (boolean): 价格是否有模型专属维度
+  - `aisonar.lifecycle`（object）：生命周期状态、发布日期/弃用日期、替代模型和 latest 标签来源
+  - `aisonar.commercial`（object）：用户收费策略、免费原因和可选免费截止时间
+  - `aisonar.badges`（array）：由生命周期和商业策略派生的展示标签
 
   条件式列表元数据：
-  - `tokenlab.providers` (array): 可用时的公开提供方
-  - `tokenlab.cache_pricing` (object or `null`): 可用时的 prompt cache 价格
-  - `tokenlab.pricing_summary` (object or `null`): 仅在复杂价格模型上返回
-  - `tokenlab.request_format_summary` (object or `null`): 轻量级非聊天发现摘要，包含 `public_operations`、`request_endpoint` 和 `request_endpoint_by_operation`
-  - `tokenlab.agent_preferences` (object): 仅在存在 `recommended_for` 时返回
+  - `aisonar.providers` (array): 可用时的公开提供方
+  - `aisonar.cache_pricing` (object or `null`): 可用时的 prompt cache 价格
+  - `aisonar.pricing_summary` (object or `null`): 仅在复杂价格模型上返回
+  - `aisonar.request_format_summary` (object or `null`): 轻量级非聊天发现摘要，包含 `public_operations`、`request_endpoint` 和 `request_endpoint_by_operation`
+  - `aisonar.agent_preferences` (object): 仅在存在 `recommended_for` 时返回
 
-  `tokenlab.capability_flags`、`tokenlab.supported_operations`、`tokenlab.pricing_provenance`、`tokenlab.request_format_details` 等仅详情可见的字段，只会由 `GET /v1/models/{model}` 返回。
+  `aisonar.capability_flags`、`aisonar.supported_operations`、`aisonar.pricing_provenance`、`aisonar.request_format_details` 等仅详情可见的字段，只会由 `GET /v1/models/{model}` 返回。
 </ResponseField>
 
 <Note>

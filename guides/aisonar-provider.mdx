@@ -11,15 +11,15 @@ This guide is for **self-hosted OpenClaw** users who want to connect AI Sonar as
 
 For current OpenClaw versions, the recommended approach is to configure AI Sonar through `models.providers`.
 
-If you just want to get started quickly, configuring `tokenlab` alone is enough. Add the other providers only when you explicitly need **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** behavior.
+If you just want to get started quickly, configuring `aisonar` alone is enough. Add the other providers only when you explicitly need **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** behavior.
 
 | Provider | OpenClaw `api` | Best for | baseUrl |
 |----------|----------------|----------|---------|
-| `tokenlab` | `openai-completions` | GPT, DeepSeek, Qwen, and most OpenAI-compatible calls | `https://api.aisonar.dev/v1` |
-| `tokenlab-responses` | `openai-responses` | OpenAI Responses workflows that expect `/v1/responses` semantics | `https://api.aisonar.dev/v1` |
-| `tokenlab-claude` | `anthropic-messages` | Native Claude Messages API | `https://api.aisonar.dev` |
-| `tokenlab-gemini` | `google-generative-ai` | Native Gemini API format | `https://api.aisonar.dev` |
-| `tokenlab-minimax` | `anthropic-messages` | Native MiniMax routing | `https://api.aisonar.dev` |
+| `aisonar` | `openai-completions` | GPT, DeepSeek, Qwen, and most OpenAI-compatible calls | `https://api.aisonar.dev/v1` |
+| `aisonar-responses` | `openai-responses` | OpenAI Responses workflows that expect `/v1/responses` semantics | `https://api.aisonar.dev/v1` |
+| `aisonar-claude` | `anthropic-messages` | Native Claude Messages API | `https://api.aisonar.dev` |
+| `aisonar-gemini` | `google-generative-ai` | Native Gemini API format | `https://api.aisonar.dev` |
+| `aisonar-minimax` | `anthropic-messages` | Native MiniMax routing | `https://api.aisonar.dev` |
 
 <Warning>
 Use the `/v1` suffix only for `openai-completions` and `openai-responses`.
@@ -45,14 +45,14 @@ Add AI Sonar providers under `models.providers`:
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "aisonar-claude/claude-sonnet-4-6"
       }
     }
   },
   models: {
     mode: "merge",
     providers: {
-      tokenlab: {
+      aisonar: {
         api: "openai-completions",
         baseUrl: "https://api.aisonar.dev/v1",
         apiKey: "sk-your-api-key",
@@ -62,7 +62,7 @@ Add AI Sonar providers under `models.providers`:
           { id: "qwen3-coder-flash", name: "Qwen 3 Coder Flash" }
         ]
       },
-      "tokenlab-responses": {
+      "aisonar-responses": {
         api: "openai-responses",
         baseUrl: "https://api.aisonar.dev/v1",
         apiKey: "sk-your-api-key",
@@ -71,7 +71,7 @@ Add AI Sonar providers under `models.providers`:
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
         ]
       },
-      "tokenlab-claude": {
+      "aisonar-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.aisonar.dev",
         apiKey: "sk-your-api-key",
@@ -80,7 +80,7 @@ Add AI Sonar providers under `models.providers`:
           { id: "claude-opus-4-6", name: "Claude Opus 4.6" }
         ]
       },
-      "tokenlab-gemini": {
+      "aisonar-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.aisonar.dev",
         apiKey: "sk-your-api-key",
@@ -89,7 +89,7 @@ Add AI Sonar providers under `models.providers`:
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
         ]
       },
-      "tokenlab-minimax": {
+      "aisonar-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.aisonar.dev",
         apiKey: "sk-your-api-key",
@@ -119,7 +119,7 @@ OpenClaw still references models with the `provider/model` format:
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
+        primary: "aisonar-gemini/gemini-3.5-flash"
       }
     }
   }
@@ -130,24 +130,24 @@ OpenClaw still references models with the `provider/model` format:
 
 | Provider | Model reference | Description |
 |----------|-----------------|-------------|
-| `tokenlab` | `tokenlab/gpt-4o` | OpenAI-compatible route |
-| `tokenlab` | `tokenlab/deepseek-r1` | DeepSeek reasoning model |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses API route |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Native Claude Messages route |
-| `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Native Gemini route |
-| `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | Native MiniMax route |
+| `aisonar` | `aisonar/gpt-4o` | OpenAI-compatible route |
+| `aisonar` | `aisonar/deepseek-r1` | DeepSeek reasoning model |
+| `aisonar-responses` | `aisonar-responses/gpt-4o` | Responses API route |
+| `aisonar-claude` | `aisonar-claude/claude-sonnet-4-6` | Native Claude Messages route |
+| `aisonar-gemini` | `aisonar-gemini/gemini-3.5-flash` | Native Gemini route |
+| `aisonar-minimax` | `aisonar-minimax/minimax-m3` | Native MiniMax route |
 
 Browse all available models at [aisonar.dev/models](https://aisonar.dev/models).
 
 ## When to Use Which Provider
 
-- `tokenlab`: default choice for most general-purpose agent and chat use cases.
-- `tokenlab-responses`: use when your OpenClaw workflow explicitly depends on OpenAI Responses semantics.
-- `tokenlab-claude`: use when you want Claude's native Messages behavior.
-- `tokenlab-gemini`: use when you want Gemini-native request/response formatting or existing Gemini-style integrations.
-- `tokenlab-minimax`: use when you want MiniMax on its native route.
+- `aisonar`: default choice for most general-purpose agent and chat use cases.
+- `aisonar-responses`: use when your OpenClaw workflow explicitly depends on OpenAI Responses semantics.
+- `aisonar-claude`: use when you want Claude's native Messages behavior.
+- `aisonar-gemini`: use when you want Gemini-native request/response formatting or existing Gemini-style integrations.
+- `aisonar-minimax`: use when you want MiniMax on its native route.
 
-If you do not need Gemini-native behavior, you can still call Gemini models through `tokenlab/gemini-*` on the OpenAI-compatible route.
+If you do not need Gemini-native behavior, you can still call Gemini models through `aisonar/gemini-*` on the OpenAI-compatible route.
 
 ## Common Mistakes
 
@@ -155,14 +155,14 @@ If you do not need Gemini-native behavior, you can still call Gemini models thro
   <Accordion title="Still using the old top-level providers array">
     Current OpenClaw docs use `models.providers`. If you keep the older top-level `providers` array format, OpenClaw may ignore the config or fail to resolve the provider prefixes as expected.
   </Accordion>
-  <Accordion title="Forgetting /v1 on tokenlab-responses">
-    `openai-responses` maps to AI Sonar's `/v1/responses` path, so `tokenlab-responses` must use `https://api.aisonar.dev/v1`.
+  <Accordion title="Forgetting /v1 on aisonar-responses">
+    `openai-responses` maps to AI Sonar's `/v1/responses` path, so `aisonar-responses` must use `https://api.aisonar.dev/v1`.
   </Accordion>
-  <Accordion title="Adding /v1 to tokenlab-claude, tokenlab-gemini, or tokenlab-minimax">
+  <Accordion title="Adding /v1 to aisonar-claude, aisonar-gemini, or aisonar-minimax">
     `anthropic-messages` and `google-generative-ai` should use `https://api.aisonar.dev` without `/v1`. Adding `/v1` can produce incorrect request paths.
   </Accordion>
   <Accordion title="Does OpenClaw still support native Gemini?">
-    Yes. Current OpenClaw documentation still includes the built-in `google` provider and also supports custom providers using `api: "google-generative-ai"`. So `tokenlab-gemini` remains a valid native Gemini route for OpenClaw users.
+    Yes. Current OpenClaw documentation still includes the built-in `google` provider and also supports custom providers using `api: "google-generative-ai"`. So `aisonar-gemini` remains a valid native Gemini route for OpenClaw users.
   </Accordion>
 </AccordionGroup>
 
@@ -173,7 +173,7 @@ After saving the config, restart your OpenClaw instance and test with a simple m
 ```bash
 # Self-hosted: restart the service
 systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+launchctl stop cc.aisonar.openclaw && launchctl start cc.aisonar.openclaw  # macOS
 ```
 
 ## Next Steps

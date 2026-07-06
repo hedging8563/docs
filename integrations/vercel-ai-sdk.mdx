@@ -28,8 +28,8 @@ npm install ai @ai-sdk/openai-compatible
 ```typescript
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 
-export const tokenlab = createOpenAICompatible({
-  name: 'tokenlab',
+export const aisonar = createOpenAICompatible({
+  name: 'aisonar',
   apiKey: process.env.API_KEY,
   baseURL: 'https://api.aisonar.dev/v1',
 });
@@ -39,10 +39,10 @@ export const tokenlab = createOpenAICompatible({
 
 ```typescript
 import { generateText } from 'ai';
-import { tokenlab } from './tokenlab';
+import { aisonar } from './aisonar';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: aisonar.chatModel('gpt-5.4'),
   prompt: 'Explain AI Sonar in one sentence.',
 });
 
@@ -53,10 +53,10 @@ console.log(text);
 
 ```typescript
 import { streamText } from 'ai';
-import { tokenlab } from './tokenlab';
+import { aisonar } from './aisonar';
 
 const result = await streamText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: aisonar.chatModel('gpt-5.4'),
   prompt: 'Write a short poem about coding.',
 });
 
@@ -70,10 +70,10 @@ for await (const textPart of result.textStream) {
 ```typescript
 import { generateText, tool } from 'ai';
 import { z } from 'zod';
-import { tokenlab } from './tokenlab';
+import { aisonar } from './aisonar';
 
 const result = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: aisonar.chatModel('gpt-5.4'),
   prompt: 'What is the weather in San Francisco?',
   tools: {
     weather: tool({
@@ -98,10 +98,10 @@ console.log(result.text);
 ```typescript
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { tokenlab } from './tokenlab';
+import { aisonar } from './aisonar';
 
 const { object } = await generateObject({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: aisonar.chatModel('gpt-5.4'),
   schema: z.object({
     name: z.string(),
     role: z.string(),
@@ -121,7 +121,7 @@ npm install ai @ai-sdk/openai
 ```typescript
 import { createOpenAI } from '@ai-sdk/openai';
 
-export const tokenlabResponses = createOpenAI({
+export const aisonarResponses = createOpenAI({
   apiKey: process.env.API_KEY,
   baseURL: 'https://api.aisonar.dev/v1',
 });
@@ -129,10 +129,10 @@ export const tokenlabResponses = createOpenAI({
 
 ```typescript
 import { generateText } from 'ai';
-import { tokenlabResponses } from './tokenlab-responses';
+import { aisonarResponses } from './aisonar-responses';
 
 const { text } = await generateText({
-  model: tokenlabResponses('gpt-5.4'),
+  model: aisonarResponses('gpt-5.4'),
   prompt: 'Explain AI Sonar in one sentence.',
 });
 ```

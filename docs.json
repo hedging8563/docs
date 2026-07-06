@@ -63,7 +63,6 @@
                 "pages": [
                   "guides/agent-first-api",
                   "guides/api-formats",
-                  "integrations/coding-agent-skill",
                   "guides/streaming",
                   "guides/error-handling",
                   "guides/rate-limits",
@@ -278,7 +277,6 @@
                 "pages": [
                   "zh/guides/agent-first-api",
                   "zh/guides/api-formats",
-                  "zh/integrations/coding-agent-skill",
                   "zh/guides/streaming",
                   "zh/guides/error-handling",
                   "zh/guides/rate-limits",
