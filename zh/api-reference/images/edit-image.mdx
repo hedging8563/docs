@@ -22,7 +22,7 @@ Nano Banana 参考图请求（`nano-banana`、`nano-banana-2` 和 `nano-banana-p
 
 xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image-quality` 以及 legacy `grok-imagine-image-pro`）最多接受 3 张源图。超过 3 张的请求会在输入校验阶段返回 `400 too_many_images`。
 
-兼容说明：如果 `gpt-image-2` 请求带上 `input_fidelity`，AI Sonar 会移除该字段，因为 GPT Image 2 已自动以高保真处理图片输入。
+`input_fidelity` 不属于当前 AI Sonar 对 `gpt-image-2` 的支持字段；请省略该字段，否则请求会返回 `400 unsupported_parameter`。
 </Note>
 
 ## 请求体
@@ -41,6 +41,8 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 
 <ParamField body="mask" type="file">
   一个附加图像，其完全透明的区域指示应编辑图像的位置。必须是有效的 PNG 文件，小于 50MB，且与 `image` 具有相同的尺寸。
+
+  对于 JSON 请求，`mask` 也可以是一个对象，并且只能包含 `image_url` 或 `file_id` 其中之一；`file_id` 必须来自 `/v1/files`，并且绑定到同一套图像编辑配置。
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -88,7 +90,6 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 对 `gpt-image-2` 或官方 FLUX/BFL 编辑模型设置 `async: true` 后，请求会先创建任务，而不是等待编辑后的图片完成。响应包含 `status: "pending"`、`task_id` 和 `poll_url`。请轮询 `/v1/tasks/{task_id}`，直到任务进入 `completed` 或 `failed`。
 
 异步编辑任务最终只返回图片 URL。如果你需要原始 `b64_json` 图片数据，请使用同步请求。
-
 
 任务创建时可能会先预留预计费用。任务完成后按实际用量结算；失败或超时的任务会释放预留费用或退回费用。
 <RequestExample>

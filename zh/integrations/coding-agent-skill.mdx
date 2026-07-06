@@ -57,7 +57,7 @@ npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-a
     创建账户或登录
   </Step>
   <Step title="获取 API Key">
-    打开 [Dashboard → API Keys](https://console.aisonar.dev/api) 并创建新 key
+    打开 [Dashboard → API Keys](https://console.aisonar.dev/customer/api) 并创建新 key
   </Step>
   <Step title="复制 key">
     你的 key 以 `sk-...` 开头，请妥善保存。
@@ -132,8 +132,6 @@ curl "https://api.aisonar.dev/v1/models/gpt-image-2/pricing" -H "Authorization: 
 ## 原生路由提示
 
 常见聊天、Responses、图像、嵌入、音频和 rerank 示例默认走 OpenAI 兼容 `/v1`。只有请求需要供应商特定行为，或 AI Sonar 返回 the native endpoint hint header 优化提示时，才切换 Anthropic 或 Gemini 原生路由。
-
-
 
 ## Agent-First 错误恢复
 

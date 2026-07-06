@@ -10,6 +10,7 @@ description: "检索单个上传文件的元数据。"
 
 当请求选择 Anthropic Files 兼容模式时，同一路由也可以返回绑定工作区的 Anthropic 风格文件元数据。
 
+不带 Anthropic 请求头时，此路由可能返回批量文件对象，也可能返回 AI Sonar 图像/参考文件对象。
 ## 注意事项
 
 - 批处理输入文件必须使用 `purpose=batch`。
@@ -55,5 +56,5 @@ curl -X GET "https://api.aisonar.dev/v1/files/file_abc123" \
 ## 重要字段
 
 <ResponseField name="id" type="string">供相关 API 使用的文件标识符。</ResponseField>
-<ResponseField name="filename" type="string">用于后续调用和支持排障的标识符。</ResponseField>
-<ResponseField name="purpose" type="string">API 返回的事件或消息类型。</ResponseField>
+<ResponseField name="filename" type="string">原始或生成的文件名。</ResponseField>
+<ResponseField name="purpose" type="string">所属工作流使用的文件用途，例如 `batch`、`batch_output`、`user_data` 或 `vision`。</ResponseField>

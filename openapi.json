@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "AI Sonar AI Gateway",
-    "description": "Organization balance, API key management, and key-level usage/billing via management token",
+    "description": "AI Sonar API reference.",
     "version": "1.0.0",
     "termsOfService": "https://aisonar.dev/tos"
   },
@@ -44,10 +44,6 @@
     {
       "name": "Gemini",
       "description": "Google Gemini-compatible API"
-    },
-    {
-      "name": "Management",
-      "description": "Organization API key management and key-level usage/billing via management token"
     },
     {
       "name": "Files",
@@ -839,8 +835,6 @@
                       "library_type": "aigc_avatar",
                       "asset_name": "Front view",
                       "asset_type": "Image",
-                      "asset_url": "https://example.com/reference.png",
-                      "cover_url": null,
                       "status": "PROCESSING",
                       "ready": false,
                       "error_message": null,
@@ -960,8 +954,6 @@
                           "library_type": "aigc_avatar",
                           "asset_name": "Front view",
                           "asset_type": "Image",
-                          "asset_url": "https://example.com/reference.png",
-                          "cover_url": null,
                           "status": "ACTIVE",
                           "ready": true,
                           "error_message": null,
@@ -1251,8 +1243,6 @@
                       "library_type": "aigc_avatar",
                       "asset_name": "Front view",
                       "asset_type": "Image",
-                      "asset_url": "https://example.com/reference.png",
-                      "cover_url": null,
                       "status": "ACTIVE",
                       "ready": true,
                       "error_message": null,
@@ -1336,8 +1326,6 @@
                       "library_type": "aigc_avatar",
                       "asset_name": "Front view approved",
                       "asset_type": "Image",
-                      "asset_url": "https://example.com/reference.png",
-                      "cover_url": null,
                       "status": "ACTIVE",
                       "ready": true,
                       "error_message": null,
@@ -1476,7 +1464,7 @@
           "Tasks"
         ],
         "summary": "Cancel async task",
-        "description": "Cancels a queued asynchronous task when the provider and model support cancellation. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) when the provider selected for the task supports cancellation. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
+        "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
         "operationId": "cancelAsyncTask",
         "parameters": [
           {
@@ -2344,8 +2332,14 @@
                   },
                   "stream_options": {
                     "type": "object",
-                    "additionalProperties": true,
-                    "description": "Streaming options such as usage chunk inclusion."
+                    "properties": {
+                      "include_obfuscation": {
+                        "type": "boolean",
+                        "description": "When true, request obfuscated tokens in Responses stream events from compatible upstreams."
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "Responses streaming options."
                   },
                   "reasoning_effort": {
                     "type": "string",
@@ -2854,505 +2848,6 @@
         }
       }
     },
-    "/v1/management/balance": {
-      "get": {
-        "tags": [
-          "Management"
-        ],
-        "summary": "Get organization balance",
-        "description": "Returns the current organization balance totals for the authenticated management token.",
-        "operationId": "getManagementBalance",
-        "security": [
-          {
-            "ManagementTokenAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Organization balance totals",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ManagementBalanceResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
-    "/v1/management/api-keys": {
-      "get": {
-        "tags": [
-          "Management"
-        ],
-        "summary": "List organization API keys",
-        "description": "Lists user-managed API keys for the current organization management token.",
-        "operationId": "listManagementApiKeys",
-        "security": [
-          {
-            "ManagementTokenAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of API keys",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ManagementApiKeyListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Management"
-        ],
-        "summary": "Create organization API key",
-        "description": "Creates a new user API key for the current organization management token.",
-        "operationId": "createManagementApiKey",
-        "security": [
-          {
-            "ManagementTokenAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 50,
-                    "default": "Default Key",
-                    "description": "Display name for the user API key. Trimmed server-side. Length must be 1-50 characters."
-                  },
-                  "limitAmount": {
-                    "type": [
-                      "number",
-                      "null"
-                    ],
-                    "minimum": 0,
-                    "maximum": 1000000,
-                    "description": "Spending limit input in USD. `null` or omitted means unlimited usage, and `0` means zero quota."
-                  },
-                  "limitCurrency": {
-                    "type": "string",
-                    "enum": [
-                      "USD"
-                    ],
-                    "default": "USD",
-                    "description": "Currency for `limitAmount`. USD is the only active currency. Sending `CNY` returns 400 `currency_retired`."
-                  },
-                  "models": {
-                    "type": "array",
-                    "default": [],
-                    "description": "Optional model allowlist. Empty array means no per-key model restriction beyond organization policy.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "expiresAt": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time",
-                    "description": "Optional RFC3339 timestamp. null means no expiry."
-                  }
-                },
-                "required": [
-                  "name"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created API key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ManagementApiKey"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        }
-      }
-    },
-    "/v1/management/api-keys/{keyId}": {
-      "patch": {
-        "tags": [
-          "Management"
-        ],
-        "summary": "Update organization API key",
-        "description": "Updates a user-managed API key for the current organization management token.",
-        "operationId": "updateManagementApiKey",
-        "security": [
-          {
-            "ManagementTokenAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "keyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "active",
-                      "inactive",
-                      "revoked"
-                    ],
-                    "description": "Lifecycle status for the user API key."
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 50,
-                    "description": "Updated display name. Length must be 1-50 characters after trimming."
-                  },
-                  "limitAmount": {
-                    "type": [
-                      "number",
-                      "null"
-                    ],
-                    "minimum": 0,
-                    "maximum": 1000000,
-                    "description": "Updated spending limit input in USD. `null` means unlimited and `0` means zero quota."
-                  },
-                  "limitCurrency": {
-                    "type": "string",
-                    "enum": [
-                      "USD"
-                    ],
-                    "description": "Currency for `limitAmount`. USD is the only active currency. Sending `CNY` returns 400 `currency_retired`.",
-                    "default": "USD"
-                  },
-                  "models": {
-                    "type": "array",
-                    "description": "Updated model allowlist.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "expiresAt": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time",
-                    "description": "Updated RFC3339 expiry timestamp. null clears the expiry."
-                  }
-                },
-                "description": "At least one field must be provided.",
-                "minProperties": 1
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated API key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ManagementApiKey"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
-    "/v1/management/api-keys/{keyId}/usage": {
-      "get": {
-        "tags": [
-          "Management"
-        ],
-        "summary": "Get API key usage",
-        "description": "Returns paginated key-level usage details without exposing provider-specific execution details.",
-        "operationId": "getManagementApiKeyUsage",
-        "security": [
-          {
-            "ManagementTokenAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "keyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "1-based page number. Default is 1."
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 50
-            },
-            "description": "Page size. Default is 50 and the maximum is 100."
-          },
-          {
-            "name": "model",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "maxLength": 100
-            },
-            "description": "Filter by requested model name. Maximum length 100."
-          },
-          {
-            "name": "modelVendor",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "maxLength": 100
-            },
-            "description": "Filter by public model vendor. Maximum length 100."
-          },
-          {
-            "name": "scene",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "chat",
-                "image",
-                "audio",
-                "video",
-                "embedding",
-                "rerank",
-                "translation",
-                "music",
-                "3d"
-              ]
-            },
-            "description": "Filter by public request scene."
-          },
-          {
-            "name": "accessChannel",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "platform",
-                "byok"
-              ]
-            },
-            "description": "Filter by access channel: platform billing or your own provider key (BYOK)."
-          },
-          {
-            "name": "startDate",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Inclusive date filter. Accepts either RFC3339 with timezone (for example 2026-03-28T00:00:00+08:00) or YYYY-MM-DD."
-          },
-          {
-            "name": "endDate",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Inclusive date filter. Accepts either RFC3339 with timezone (for example 2026-03-28T00:00:00+08:00) or YYYY-MM-DD."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "API key usage details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ManagementUsageResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
-    "/v1/management/api-keys/{keyId}/billing": {
-      "get": {
-        "tags": [
-          "Management"
-        ],
-        "summary": "Get API key billing",
-        "description": "Returns aggregated key-level billing breakdowns without exposing provider-specific execution details.",
-        "operationId": "getManagementApiKeyBilling",
-        "security": [
-          {
-            "ManagementTokenAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "keyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "model",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by requested model name."
-          },
-          {
-            "name": "modelVendor",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scene",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "accessChannel",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "platform",
-                "byok"
-              ]
-            }
-          },
-          {
-            "name": "startDate",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "endDate",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "API key billing breakdowns",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ManagementBillingResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
     "/v1/models/{model}/pricing": {
       "get": {
         "tags": [
@@ -3495,10 +2990,12 @@
               "type": "string",
               "enum": [
                 "batch",
-                "batch_output"
+                "batch_output",
+                "user_data",
+                "vision"
               ]
             },
-            "description": "Listing currently covers AI Sonar batch files. Image file uploads are bound for reuse by file_id but are not listed from local storage."
+            "description": "Optional file purpose filter. batch and batch_output cover Batch API files; user_data and vision cover AI Sonar image/reference file bindings. Anthropic Files API mode is selected by Anthropic headers rather than this query parameter."
           }
         ],
         "responses": {
@@ -3548,6 +3045,43 @@
           },
           "404": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Delete file",
+        "description": "Deletes a batch file or a bound image/reference file. When the request includes anthropic-beta: files-api-2025-04-14, the route uses Anthropic Files API mode for the bound workspace.",
+        "operationId": "deleteFile",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "File ID returned by the Files API."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileDeletedObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }
@@ -3902,7 +3436,7 @@
           "Realtime"
         ],
         "summary": "Connect to realtime WebSocket",
-        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions.",
+        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a AI Sonar WebSocket proxy; it does not expose OpenAI Realtime REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
         "operationId": "connectRealtime",
         "parameters": [
           {
@@ -4042,11 +3576,6 @@
                       "low"
                     ]
                   },
-                  "partial_images": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 3
-                  },
                   "user": {
                     "type": "string"
                   },
@@ -4091,6 +3620,34 @@
                       },
                       "additionalProperties": false
                     }
+                  },
+                  "mask": {
+                    "type": "object",
+                    "oneOf": [
+                      {
+                        "required": [
+                          "image_url"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "file_id"
+                        ]
+                      }
+                    ],
+                    "properties": {
+                      "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "Source mask image URL. Public http/https URLs and compatible data URLs are supported by the runtime validation path."
+                      },
+                      "file_id": {
+                        "type": "string",
+                        "description": "A file id returned by AI Sonar /v1/files and bound to the same image-edit configuration."
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "Optional JSON mask reference for image edits. Provide exactly one of image_url or file_id. Multipart requests can also send mask as a file part."
                   }
                 },
                 "additionalProperties": true,
@@ -4193,11 +3750,6 @@
                       "auto",
                       "low"
                     ]
-                  },
-                  "partial_images": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 3
                   },
                   "user": {
                     "type": "string"
@@ -5701,12 +5253,6 @@
         "scheme": "bearer",
         "bearerFormat": "API Key",
         "description": "API Key authentication. Get your API key from the dashboard."
-      },
-      "ManagementTokenAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "Management Token",
-        "description": "Management token authentication. Get your management token from Dashboard Settings."
       }
     },
     "schemas": {
@@ -6139,7 +5685,14 @@
             "type": "string",
             "description": "System fingerprint"
           }
-        }
+        },
+        "required": [
+          "id",
+          "object",
+          "created",
+          "model",
+          "choices"
+        ]
       },
       "ChatChoice": {
         "type": "object",
@@ -6184,7 +5737,12 @@
             "nullable": true,
             "description": "Reason for completion"
           }
-        }
+        },
+        "required": [
+          "index",
+          "message",
+          "finish_reason"
+        ]
       },
       "UsageInfo": {
         "type": "object",
@@ -6322,7 +5880,12 @@
                     }
                   ]
                 }
-              }
+              },
+              "required": [
+                "object",
+                "index",
+                "embedding"
+              ]
             }
           },
           "model": {
@@ -6337,9 +5900,19 @@
               "total_tokens": {
                 "type": "integer"
               }
-            }
+            },
+            "required": [
+              "prompt_tokens",
+              "total_tokens"
+            ]
           }
-        }
+        },
+        "required": [
+          "object",
+          "data",
+          "model",
+          "usage"
+        ]
       },
       "ImageGenerationRequest": {
         "type": "object",
@@ -6437,12 +6010,6 @@
             ],
             "description": "Moderation strictness for compatible image models such as gpt-image-2"
           },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3,
-            "description": "Number of partial images requested for streaming-compatible providers; usage may include additional image output tokens"
-          },
           "user": {
             "type": "string",
             "description": "End-user identifier"
@@ -6476,51 +6043,96 @@
               }
             }
           }
-        }
+        },
+        "required": [
+          "created",
+          "data"
+        ]
       },
       "AudioSpeechRequest": {
         "type": "object",
         "required": [
-          "model",
-          "input",
-          "voice"
+          "input"
         ],
         "properties": {
           "model": {
             "type": "string",
-            "description": "TTS model (tts-1 or tts-1-hd)",
+            "default": "tts-1",
+            "description": "TTS model. Query GET /v1/models?recommended_for=tts for the current shortlist.",
             "example": "tts-1"
           },
           "input": {
             "type": "string",
             "maxLength": 4096,
-            "description": "Text to synthesize"
+            "description": "Text to synthesize."
           },
           "voice": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ],
+            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible routes. Some MiniMax routes also accept voice_id."
+          },
+          "voice_id": {
             "type": "string",
-            "description": "Voice to use. Common voices include alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, and verse."
+            "description": "Provider-native voice selector for MiniMax-compatible speech models."
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Optional style or delivery instructions for OpenAI-compatible TTS models that support them."
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Optional speaking style prompt for Gemini TTS models."
+          },
+          "language_code": {
+            "type": "string",
+            "description": "Optional language code for Gemini, xAI, and compatible TTS routes.",
+            "example": "en-US"
           },
           "response_format": {
             "type": "string",
+            "description": "Audio format. Common values include mp3, opus, aac, flac, wav, and pcm. Supported values vary by model family.",
+            "example": "mp3"
+          },
+          "stream_format": {
+            "type": "string",
             "enum": [
-              "mp3",
-              "opus",
-              "aac",
-              "flac",
-              "wav",
-              "pcm"
+              "audio",
+              "sse"
             ],
-            "default": "mp3",
-            "description": "Audio format"
+            "default": "audio",
+            "description": "AI Sonar delivery format. stream_format=sse is not supported for tts-1 or tts-1-hd."
           },
           "speed": {
             "type": "number",
             "minimum": 0.25,
             "maximum": 4,
-            "default": 1,
-            "description": "Speech speed"
+            "description": "Speech speed for model families that support it."
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Sampling temperature for Gemini-compatible TTS routes."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "AudioTranscriptionRequest": {
         "type": "object",
@@ -6724,14 +6336,14 @@
           "cfg_scale": {
             "type": "number",
             "minimum": 0,
-            "maximum": 30,
-            "description": "Prompt adherence strength"
+            "maximum": 20,
+            "description": "Prompt adherence strength (0-20) for models that expose CFG-style control."
           },
           "motion_strength": {
             "type": "number",
             "minimum": 0,
-            "maximum": 100,
-            "description": "Motion intensity"
+            "maximum": 1,
+            "description": "Motion intensity (0-1) for models that expose it."
           },
           "start_image": {
             "type": "string",
@@ -6861,9 +6473,9 @@
           },
           "video_urls": {
             "type": "array",
-            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family.",
+            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. AI Sonar currently accepts up to 3 reference videos.",
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 3,
             "items": {
               "type": "string",
               "format": "uri"
@@ -6871,9 +6483,9 @@
           },
           "audio_urls": {
             "type": "array",
-            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family.",
+            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. AI Sonar currently accepts up to 3 reference audios.",
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 3,
             "items": {
               "type": "string",
               "format": "uri"
@@ -6940,6 +6552,15 @@
             "type": "boolean",
             "default": false,
             "description": "Return the last generated frame when the selected model supports it. Seedance defaults to false when omitted."
+          },
+          "draft": {
+            "type": "boolean",
+            "default": false,
+            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by draft-capable Seedance routes; draft=true creates a low-cost draft task."
+          },
+          "draft_task_id": {
+            "type": "string",
+            "description": "Seedance 1.5 Pro draft promotion task ID. Provide this instead of draft=true to create the final video from a previous draft task."
           }
         }
       },
@@ -6994,8 +6615,57 @@
                 "type": "string"
               }
             }
+          },
+          "task_id": {
+            "type": "string",
+            "description": "Canonical async task identifier for polling. Treat this as the same identity as id when both are present."
+          },
+          "poll_url": {
+            "type": "string",
+            "description": "Preferred polling URL for this task. Use this exact path when checking status."
+          },
+          "video_url": {
+            "type": "string",
+            "description": "Generated video URL when the create response is already terminal or includes an immediate result."
+          },
+          "last_frame_url": {
+            "type": "string",
+            "description": "Last generated frame URL when requested and supported by the selected model."
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "video_url": {
+                "type": "string"
+              },
+              "last_frame_url": {
+                "type": "string"
+              },
+              "file_url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          "generate_audio": {
+            "type": "boolean",
+            "description": "Resolved audio output flag when returned by the adapter."
+          },
+          "draft": {
+            "type": "boolean",
+            "description": "Whether the Seedance draft workflow was used for this task."
+          },
+          "draft_task_id": {
+            "type": "string",
+            "description": "Seedance draft task identifier when returned by the adapter."
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "VideoTaskResponse": {
         "type": "object",
@@ -7213,16 +6883,6 @@
               "Audio"
             ]
           },
-          "asset_url": {
-            "type": "string",
-            "nullable": true,
-            "description": "Original upload source when available. Use the AI Sonar material asset id for generation, not this URL."
-          },
-          "cover_url": {
-            "type": "string",
-            "nullable": true,
-            "description": "Reserved for future preview metadata. Do not depend on it for material access."
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -7301,7 +6961,11 @@
               "$ref": "#/components/schemas/ModelListItem"
             }
           }
-        }
+        },
+        "required": [
+          "object",
+          "data"
+        ]
       },
       "Model": {
         "type": "object",
@@ -7693,6 +7357,158 @@
                             }
                           }
                         }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "inline_data": {
+                            "type": "object",
+                            "properties": {
+                              "mime_type": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "fileData": {
+                            "type": "object",
+                            "properties": {
+                              "mimeType": {
+                                "type": "string"
+                              },
+                              "fileUri": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "file_data": {
+                            "type": "object",
+                            "properties": {
+                              "mime_type": {
+                                "type": "string"
+                              },
+                              "file_uri": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "videoMetadata": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "video_metadata": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "thought": {
+                            "type": "boolean"
+                          },
+                          "thoughtSignature": {
+                            "type": "string"
+                          },
+                          "thought_signature": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "functionCall": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "functionResponse": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "executableCode": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "codeExecutionResult": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "function_call": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "function_response": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "executable_code": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "code_execution_result": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        }
                       }
                     ]
                   }
@@ -7721,8 +7537,7 @@
             "properties": {
               "temperature": {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 2
+                "minimum": 0
               },
               "topP": {
                 "type": "number",
@@ -7742,6 +7557,47 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "candidateCount": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Number of response candidates for non-streaming generation. Streaming requests must omit this field or keep it at 1."
+              },
+              "responseModalities": {
+                "type": "array",
+                "description": "Requested output modalities for compatible native Gemini routes.",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "responseMimeType": {
+                "type": "string",
+                "description": "Requested output MIME type, such as text/plain or application/json."
+              },
+              "responseSchema": {
+                "type": "object",
+                "description": "JSON schema for structured output when responseMimeType requests JSON.",
+                "additionalProperties": true
+              },
+              "thinkingConfig": {
+                "type": "object",
+                "description": "Thinking budget options for compatible Gemini models.",
+                "properties": {
+                  "thinkingBudget": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": true
+              },
+              "thinking_config": {
+                "type": "object",
+                "description": "Snake-case thinking budget options for compatible Gemini models.",
+                "properties": {
+                  "thinking_budget": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": true
               }
             }
           },
@@ -7758,6 +7614,111 @@
                 }
               }
             }
+          },
+          "tools": {
+            "type": "array",
+            "description": "Gemini tools. Supported tool combinations depend on the selected model and route; unsupported native image-output tool combinations are rejected before upstream retries.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "functionDeclarations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "function_declarations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "codeExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "code_execution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "googleSearch": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "google_search": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "googleSearchRetrieval": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "google_search_retrieval": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "urlContext": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "url_context": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "computerUse": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "computer_use": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "toolConfig": {
+            "type": "object",
+            "description": "Gemini tool configuration such as functionCallingConfig.",
+            "properties": {
+              "functionCallingConfig": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string"
+                  },
+                  "allowedFunctionNames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              },
+              "function_calling_config": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string"
+                  },
+                  "allowed_function_names": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          },
+          "cachedContent": {
+            "type": "string",
+            "description": "Gemini cached content resource name for compatible models."
           }
         }
       },
@@ -7821,432 +7782,6 @@
                 "type": "integer"
               }
             }
-          }
-        }
-      },
-      "ManagementBalanceResponse": {
-        "type": "object",
-        "required": [
-          "object",
-          "organization_id",
-          "balance",
-          "total_recharge",
-          "total_used"
-        ],
-        "properties": {
-          "object": {
-            "type": "string",
-            "enum": [
-              "organization_balance"
-            ]
-          },
-          "organization_id": {
-            "type": "string",
-            "description": "Organization associated with the current management token."
-          },
-          "balance": {
-            "type": "number",
-            "description": "Current organization balance in USD."
-          },
-          "total_recharge": {
-            "type": "number",
-            "description": "Total successful organization recharge amount in USD."
-          },
-          "total_used": {
-            "type": "number",
-            "description": "Total organization usage spend in USD."
-          }
-        }
-      },
-      "ManagementApiKey": {
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "key_prefix",
-          "status",
-          "used_amount",
-          "models",
-          "created_at"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "key_prefix": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "inactive",
-              "suspended",
-              "revoked"
-            ]
-          },
-          "limit_amount": {
-            "type": [
-              "number",
-              "null"
-            ],
-            "description": "API key spending cap in USD. null means unlimited."
-          },
-          "used_amount": {
-            "type": "number",
-            "description": "Accumulated API key usage in USD."
-          },
-          "models": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expires_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "last_used_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "key": {
-            "type": "string",
-            "description": "Returned only on creation"
-          }
-        }
-      },
-      "ManagementApiKeyListResponse": {
-        "type": "object",
-        "required": [
-          "object",
-          "data"
-        ],
-        "properties": {
-          "object": {
-            "type": "string",
-            "enum": [
-              "list"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementApiKey"
-            }
-          }
-        }
-      },
-      "ManagementUsageItem": {
-        "type": "object",
-        "required": [
-          "model",
-          "scene",
-          "access_channel",
-          "usage_unit",
-          "usage_quantity",
-          "cost",
-          "created_at"
-        ],
-        "properties": {
-          "request_id": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "billing_transaction_id": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Settled billing transaction id for request-level reconciliation."
-          },
-          "model_vendor": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "scene": {
-            "type": "string"
-          },
-          "access_channel": {
-            "type": "string",
-            "enum": [
-              "platform",
-              "byok"
-            ]
-          },
-          "usage_unit": {
-            "type": "string"
-          },
-          "usage_quantity": {
-            "type": "number"
-          },
-          "prompt_tokens": {
-            "type": "integer"
-          },
-          "completion_tokens": {
-            "type": "integer"
-          },
-          "total_tokens": {
-            "type": "integer"
-          },
-          "cache_read_tokens": {
-            "type": "integer"
-          },
-          "cache_write_tokens": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number",
-            "description": "Request cost in USD."
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "model": {
-            "type": "string"
-          }
-        }
-      },
-      "ManagementUsageSummary": {
-        "type": "object",
-        "required": [
-          "total_requests",
-          "total_cost",
-          "usage_unit_breakdown"
-        ],
-        "properties": {
-          "total_requests": {
-            "type": "integer"
-          },
-          "total_cost": {
-            "type": "number",
-            "description": "Aggregated total cost in USD."
-          },
-          "total_prompt_tokens": {
-            "type": "integer"
-          },
-          "total_completion_tokens": {
-            "type": "integer"
-          },
-          "total_tokens": {
-            "type": "integer"
-          },
-          "usage_unit_breakdown": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "usage_unit",
-                "usage_quantity"
-              ],
-              "properties": {
-                "usage_unit": {
-                  "type": "string"
-                },
-                "usage_quantity": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "ManagementModelVendorBreakdown": {
-        "type": "object",
-        "required": [
-          "model_vendor",
-          "requests",
-          "cost"
-        ],
-        "properties": {
-          "model_vendor": {
-            "type": "string"
-          },
-          "requests": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number"
-          }
-        }
-      },
-      "ManagementSceneBreakdown": {
-        "type": "object",
-        "required": [
-          "scene",
-          "requests",
-          "cost"
-        ],
-        "properties": {
-          "scene": {
-            "type": "string"
-          },
-          "requests": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number"
-          }
-        }
-      },
-      "ManagementAccessChannelBreakdown": {
-        "type": "object",
-        "required": [
-          "access_channel",
-          "requests",
-          "cost"
-        ],
-        "properties": {
-          "access_channel": {
-            "type": "string",
-            "enum": [
-              "platform",
-              "byok"
-            ]
-          },
-          "requests": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number"
-          }
-        }
-      },
-      "ManagementDailyCostBreakdown": {
-        "type": "object",
-        "required": [
-          "date",
-          "cost"
-        ],
-        "properties": {
-          "date": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "cost": {
-            "type": "number"
-          }
-        }
-      },
-      "ManagementBreakdowns": {
-        "type": "object",
-        "properties": {
-          "by_model_vendor": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementModelVendorBreakdown"
-            }
-          },
-          "by_scene": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementSceneBreakdown"
-            }
-          },
-          "by_access_channel": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementAccessChannelBreakdown"
-            }
-          },
-          "daily_cost": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementDailyCostBreakdown"
-            }
-          },
-          "by_model": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementModelBreakdown"
-            }
-          }
-        }
-      },
-      "ManagementUsageResponse": {
-        "type": "object",
-        "required": [
-          "api_key",
-          "items",
-          "pagination",
-          "summary",
-          "breakdowns"
-        ],
-        "properties": {
-          "api_key": {
-            "$ref": "#/components/schemas/ManagementApiKey"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementUsageItem"
-            }
-          },
-          "pagination": {
-            "type": "object",
-            "required": [
-              "page",
-              "limit",
-              "total",
-              "totalPages"
-            ],
-            "properties": {
-              "page": {
-                "type": "integer"
-              },
-              "limit": {
-                "type": "integer"
-              },
-              "total": {
-                "type": "integer"
-              },
-              "totalPages": {
-                "type": "integer"
-              }
-            }
-          },
-          "summary": {
-            "$ref": "#/components/schemas/ManagementUsageSummary"
-          },
-          "breakdowns": {
-            "$ref": "#/components/schemas/ManagementBreakdowns"
-          }
-        }
-      },
-      "ManagementBillingResponse": {
-        "type": "object",
-        "required": [
-          "api_key",
-          "summary",
-          "breakdowns"
-        ],
-        "properties": {
-          "api_key": {
-            "$ref": "#/components/schemas/ManagementApiKey"
-          },
-          "summary": {
-            "$ref": "#/components/schemas/ManagementUsageSummary"
-          },
-          "breakdowns": {
-            "$ref": "#/components/schemas/ManagementBreakdowns"
           }
         }
       },
@@ -8349,8 +7884,7 @@
           "bytes",
           "created_at",
           "filename",
-          "purpose",
-          "status"
+          "purpose"
         ],
         "properties": {
           "id": {
@@ -8379,12 +7913,16 @@
             "type": "string",
             "enum": [
               "batch",
-              "batch_output"
-            ]
+              "batch_output",
+              "user_data",
+              "vision"
+            ],
+            "description": "File purpose. batch and batch_output are used by Batches; user_data and vision are used by file-backed image/reference requests."
           },
           "status": {
             "type": "string",
-            "example": "processed"
+            "example": "processed",
+            "description": "Batch file processing status. Image/reference file objects may omit this field."
           },
           "expires_at": {
             "type": [
@@ -8393,7 +7931,8 @@
             ],
             "example": 1741425600
           }
-        }
+        },
+        "description": "File metadata. Batch files include status; image/reference files may omit status depending on the upstream file provider."
       },
       "FileListResponse": {
         "type": "object",
@@ -8462,6 +8001,7 @@
           "input_file_id",
           "completion_window",
           "status",
+          "created_at",
           "request_counts"
         ],
         "properties": {
@@ -8591,8 +8131,6 @@
         "required": [
           "object",
           "data",
-          "first_id",
-          "last_id",
           "has_more"
         ],
         "properties": {
@@ -8910,13 +8448,10 @@
                       "type": "array",
                       "items": {
                         "type": "object",
+                        "additionalProperties": true,
                         "properties": {
                           "type": {
-                            "type": "string",
-                            "enum": [
-                              "text",
-                              "image"
-                            ]
+                            "type": "string"
                           },
                           "text": {
                             "type": "string"
@@ -8925,11 +8460,7 @@
                             "type": "object",
                             "properties": {
                               "type": {
-                                "type": "string",
-                                "enum": [
-                                  "base64",
-                                  "url"
-                                ]
+                                "type": "string"
                               },
                               "media_type": {
                                 "type": "string"
@@ -8950,9 +8481,43 @@
               }
             }
           },
+          "cache_control": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Top-level Anthropic cache control marker for count_tokens requests."
+          },
+          "output_config": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Anthropic output configuration fields that may affect token counting."
+          },
           "system": {
-            "type": "string",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ],
             "description": "System prompt"
+          },
+          "thinking": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Anthropic extended thinking configuration for token counting."
           },
           "tools": {
             "type": "array",
@@ -8975,7 +8540,7 @@
             "description": "Tool choice policy or explicit tool selection."
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "AnthropicCountTokensResponse": {
         "type": "object",
@@ -9382,36 +8947,6 @@
         },
         "additionalProperties": false
       },
-      "ManagementModelBreakdown": {
-        "type": "object",
-        "required": [
-          "model",
-          "model_vendor",
-          "requests",
-          "cost",
-          "usage_quantity"
-        ],
-        "properties": {
-          "model_vendor": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "requests": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number"
-          },
-          "usage_quantity": {
-            "type": "number"
-          },
-          "model": {
-            "type": "string"
-          }
-        }
-      },
       "ModelListRequestFormatSummary": {
         "type": [
           "object",
@@ -9813,6 +9348,31 @@
           }
         },
         "additionalProperties": false
+      },
+      "FileDeletedObject": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "file-abc123"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "file"
+            ]
+          },
+          "deleted": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": true
       },
       "ModelListLegacyPlatformExtension": {
         "type": "object",

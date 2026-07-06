@@ -60,7 +60,6 @@ description: "创建一个视频生成任务"
 对于 Seedance 2.0 模型，AI Sonar 会在生成前自动将图片字段（`image`、`image_url`、`image_urls`、`reference_images`、`start_image`、`end_image`）准备为可复用的虚拟数字人素材。如果 60 秒内仍未准备完成，API 会返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；请在这些素材变为 `ACTIVE` 后重试。
 </Info>
 
-
 <ParamField body="reference_image_type" type="string">
   可选的参考图角色字段，用于区分 `asset` 和 `style` 两类参考图的模型。
 </ParamField>
@@ -115,6 +114,14 @@ description: "创建一个视频生成任务"
 
 <ParamField body="output_audio" type="boolean">
   规范的音频输出开关。Veo 3 和 Seedance 省略时默认 `true`。`kling-3.0-video` 仅在非元素引用请求中接受该字段，省略时默认无声。不要将 `output_audio=true` 与 `kling_elements` 组合使用。
+</ParamField>
+
+<ParamField body="draft" type="boolean">
+  Seedance 1.5 Pro 草稿工作流开关。仅在支持草稿任务的 Seedance 模型上使用 `draft=true`；不要和 `draft_task_id` 同时传。
+</ParamField>
+
+<ParamField body="draft_task_id" type="string">
+  Seedance 1.5 Pro 草稿晋升任务 ID。传入上一次草稿任务 ID 后创建正式视频；这不是通用视频字段。
 </ParamField>
 
 <ParamField body="ratio" type="string">

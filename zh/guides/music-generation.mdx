@@ -61,7 +61,7 @@ curl "https://api.aisonar.dev/v1/tasks/$TASK_ID" \
 
 ## 计费和对账
 
-音乐任务可以在创建时保留估计金额，并在知道终态后结算。存储 `request_id`、`task_id`、模型、端点和 `billing_transaction_id`，当它出现时。使用管理 API 使用记录进行对账，而不是供应商任务 ID。
+音乐任务可以在创建时保留估计金额，并在知道终态后结算。请保存 `request_id`、`task_id`、模型、端点和可能出现的 `billing_transaction_id`，便于支持团队追踪请求，而不是依赖供应商任务 ID。
 
 ## 常见错误
 

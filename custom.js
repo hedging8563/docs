@@ -269,7 +269,7 @@
     }, [
       'Get your API key from ',
       createElement('a', {
-        href: 'https://console.aisonar.dev',
+        href: 'https://console.aisonar.dev/customer',
         target: '_blank',
         rel: 'noopener noreferrer',
         style: { color: '#334155', fontWeight: '600', textDecoration: 'none' }

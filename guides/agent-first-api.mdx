@@ -71,7 +71,7 @@ When account balance is too low for the estimated cost:
       {"id": "gpt-5-mini"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://console.aisonar.dev/billing."
+    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://console.aisonar.dev/customer/billing."
   }
 }
 ```
@@ -146,8 +146,6 @@ When input exceeds the model's context window (upstream error, enriched with hin
 ## Native Endpoint Headers
 
 When you call `/v1/chat/completions` with a model that has a native endpoint (Anthropic or Gemini), the **success response** includes optimization headers:
-
-
 
 | Model Provider | Suggested Endpoint | Benefit |
 |---------------|-------------------|---------|

@@ -61,7 +61,7 @@ Expected public statuses are `pending`, `processing`, `completed`, and `failed`.
 
 ## Billing And Reconciliation
 
-Music tasks can reserve an estimated amount at create time and settle after the terminal status is known. Store `request_id`, `task_id`, model, endpoint, and `billing_transaction_id` when it appears. Use Management API usage records for reconciliation instead of provider task IDs.
+Music tasks can reserve an estimated amount at create time and settle after the terminal status is known. Store `request_id`, `task_id`, model, endpoint, and `billing_transaction_id` when it appears so support can trace the request without relying on provider task IDs.
 
 ## Common Errors
 

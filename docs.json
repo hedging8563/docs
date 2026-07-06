@@ -33,7 +33,7 @@
         },
         {
           "anchor": "Dashboard",
-          "href": "https://console.aisonar.dev",
+          "href": "https://console.aisonar.dev/customer",
           "icon": "gauge"
         },
         {
@@ -119,6 +119,7 @@
                   "api-reference/files/list-files",
                   "api-reference/files/retrieve-file",
                   "api-reference/files/retrieve-file-content",
+                  "api-reference/files/delete-file",
                   "api-reference/batches/create-batch",
                   "api-reference/batches/list-batches",
                   "api-reference/batches/retrieve-batch",
@@ -203,18 +204,6 @@
                   "api-reference/gemini/get-model",
                   "api-reference/gemini/generate-content",
                   "api-reference/gemini/stream-generate-content"
-                ]
-              },
-              {
-                "group": "Management",
-                "pages": [
-                  "api-reference/management/introduction",
-                  "api-reference/management/get-balance",
-                  "api-reference/management/list-api-keys",
-                  "api-reference/management/create-api-key",
-                  "api-reference/management/update-api-key",
-                  "api-reference/management/get-api-key-usage",
-                  "api-reference/management/get-api-key-billing"
                 ]
               }
             ]
@@ -345,6 +334,7 @@
                   "zh/api-reference/files/list-files",
                   "zh/api-reference/files/retrieve-file",
                   "zh/api-reference/files/retrieve-file-content",
+                  "zh/api-reference/files/delete-file",
                   "zh/api-reference/batches/create-batch",
                   "zh/api-reference/batches/list-batches",
                   "zh/api-reference/batches/retrieve-batch",
@@ -430,18 +420,6 @@
                   "zh/api-reference/gemini/generate-content",
                   "zh/api-reference/gemini/stream-generate-content"
                 ]
-              },
-              {
-                "group": "管理",
-                "pages": [
-                  "zh/api-reference/management/introduction",
-                  "zh/api-reference/management/get-balance",
-                  "zh/api-reference/management/list-api-keys",
-                  "zh/api-reference/management/create-api-key",
-                  "zh/api-reference/management/update-api-key",
-                  "zh/api-reference/management/get-api-key-usage",
-                  "zh/api-reference/management/get-api-key-billing"
-                ]
               }
             ]
           },
@@ -503,7 +481,7 @@
     "primary": {
       "type": "button",
       "label": "Open Console",
-      "href": "https://console.aisonar.dev"
+      "href": "https://console.aisonar.dev/customer"
     }
   },
   "redirects": [

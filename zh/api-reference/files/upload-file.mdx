@@ -8,6 +8,14 @@ description: "上传一个 JSONL 批量输入文件以便后续批量创建。"
 
 此端点是 AI Sonar 的 OpenAI 兼容批量 API 的一部分。批量作业使用上传的 JSONL 文件，异步运行，并可以在稍后返回输出/错误文件。
 
+## 支持的文件模式
+
+AI Sonar 将 `/v1/files` 明确分成三种模式：
+
+- 批量文件：使用 `purpose=batch`，供 `/v1/batches` 使用。
+- 图像/参考文件：使用 `purpose=user_data` 或 `purpose=vision`，供基于文件的图像请求使用。
+- Anthropic Files API 模式：添加 `anthropic-beta: files-api-2025-04-14`，使用 Anthropic 原生文件存储。
+
 ## 注意事项
 
 - 批量输入文件必须使用 `purpose=batch`。
@@ -70,5 +78,5 @@ curl -X POST "https://api.aisonar.dev/v1/files" \
 ## 重要字段
 
 <ResponseField name="id" type="string">供相关 API 使用的文件标识符。</ResponseField>
-<ResponseField name="purpose" type="string">API 返回的事件或消息类型。</ResponseField>
-<ResponseField name="bytes" type="integer">用于计费对账的 USD 十进制字符串。</ResponseField>
+<ResponseField name="purpose" type="string">分配给文件的用途。上传目前接受 `batch`、`user_data` 或 `vision`。</ResponseField>
+<ResponseField name="bytes" type="integer">文件大小，单位为字节。</ResponseField>

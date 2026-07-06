@@ -57,7 +57,7 @@ If you see `tokenlab-api-integration`, the installation succeeded.
     Create an account or log in
   </Step>
   <Step title="Get API Key">
-    Open [Dashboard → API Keys](https://console.aisonar.dev/api) and create a new key
+    Open [Dashboard → API Keys](https://console.aisonar.dev/customer/api) and create a new key
   </Step>
   <Step title="Copy The Key">
     Your key starts with `sk-...`. Store it securely.
@@ -132,8 +132,6 @@ curl "https://api.aisonar.dev/v1/models/gpt-image-2/pricing" -H "Authorization: 
 ## Native Routing Hints
 
 OpenAI-compatible `/v1` is the default path for common chat, responses, image, embedding, audio, and rerank examples. Use native Anthropic or Gemini routes only when the request needs provider-specific behavior or AI Sonar returns the native endpoint hint header as an optimization hint.
-
-
 
 ## Agent-First Error Recovery
 

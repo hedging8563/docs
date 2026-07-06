@@ -56,7 +56,7 @@ Use real-person material verification when your product needs consent and face v
 5. Store the returned `group_id`; pass it when creating `liveness_face` material assets.
 6. Use [List Real-Person Verification History](/api-reference/video/list-real-person-verification-history) to review previous sessions. History is long-lived, but it does not extend the 120-second binding window.
 
-Optional: use the [test console](https://console.aisonar.dev/seedance-assets) to verify your request and callback flow, inspect material groups, and review verification history. Your production integration should call the APIs directly.
+Optional: use the [test console](https://console.aisonar.dev/customer/seedance-assets) to verify your request and callback flow, inspect material groups, and review verification history. Your production integration should call the APIs directly.
 
 ## Creating Material Groups
 
@@ -80,7 +80,7 @@ For `aigc_avatar`, `group_id` is optional; AI Sonar uses or creates the organiza
 
 Material ingestion is asynchronous. Poll [Get Material Asset](/api-reference/video/get-material-asset) until `status` becomes `ACTIVE`. A successful HTTP response only means the request was accepted; always read the business status. If the status is `FAILED`, inspect `error_message`, fix the source material, and create a new asset.
 
-The `asset_url` field describes the upload source or temporary inspection information. Use the returned AI Sonar material asset `id` for generation; do not treat `asset_url` as a long-term material address.
+In create-material requests, `asset_url` is only the import source. AI Sonar returns a material asset `id`; use that `id` for generation instead of reusing the original URL.
 
 For real-person material groups, one group maps to one real person. Uploads are checked against the verified face. Assets with multiple faces or a face that does not match the verified person can fail. For best results, upload both a full-body front reference image and a front-facing close-up where the face is clear.
 
@@ -107,7 +107,6 @@ curl https://api.aisonar.dev/v1/videos/assets/seedance_asset_def456 \
   -H "Authorization: Bearer $API_KEY"
 ```
 
-
 For a real-person material group, create a verification session first and bind the result before uploading materials.
 
 ```bash
@@ -121,7 +120,6 @@ curl https://api.aisonar.dev/v1/videos/assets/visual-validation-results \
   -H "Content-Type: application/json" \
   -d '{"session_id":"svv_abc123","verification_token":"svvt_def456","group_name":"Creator A"}'
 ```
-
 
 ## Pricing And Async Results
 

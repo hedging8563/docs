@@ -28,31 +28,18 @@ Log enough to diagnose the request without leaking secrets:
 - Terminal async status responses, including public error fields.
 - Client retry count and whether the retry created a new task or resumed an existing one.
 
-Always redact `Authorization`, API keys, management tokens, signed URLs, private media URLs, full prompts, and user personal data unless you have explicit permission to retain them.
+Always redact `Authorization`, API keys, signed URLs, private media URLs, full prompts, and user personal data unless you have explicit permission to retain them.
 
 ## Troubleshooting Matrix
 
 | Symptom | First check | Useful page |
 |---------|-------------|-------------|
-| `401` or `403` | API key, management token, organization access, key scope | [Authentication](/authentication) |
+| `401` or `403` | API key, organization access, key scope | [Authentication](/authentication) |
 | `402` | Balance, API key spend limit, model price availability | [Billing & Pricing](/guides/billing) |
 | `429` | Account tier, endpoint rate limit, retry behavior | [Rate Limits](/guides/rate-limits) |
 | `400 invalid_request_error` | Unsupported field, wrong endpoint, missing required field, or model request mismatch | [Error Handling](/guides/error-handling) |
 | Async task cannot be found | Wrong API key, stale task ID, expired task, or non-public task ID | [Async Jobs & Polling](/guides/async-jobs-polling) |
 | Cost does not match UI | Settlement timing or comparing the wrong identifier | [Billing & Pricing](/guides/billing) |
-
-## Usage Reconciliation
-
-Use the Management API for server-side reconciliation:
-
-```bash
-curl "https://api.aisonar.dev/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video" \
-  -H "Authorization: Bearer mt-your-management-token"
-```
-
-`GET /v1/management/api-keys/{keyId}/usage` can filter by `scene`, `accessChannel`, `model`, `modelVendor`, `startDate`, and `endDate`. Use these records instead of scraping dashboard pages or relying on provider task IDs.
-
-Streaming responses may settle after the stream is sent, so a billing header can be absent even when usage is later recorded. Async media tasks may settle after terminal polling.
 
 ## Support Packet Template
 
@@ -65,7 +52,7 @@ When contacting support, include:
 - Sanitized request shape and public error body.
 - Your expected result and what the user actually saw.
 
-Do not include API keys, management tokens, private media, full prompts, provider URLs, channel IDs, or private diagnostic identifiers unless AI Sonar support explicitly asks for a redacted sample.
+Do not include API keys, private media, full prompts, provider URLs, channel IDs, or private diagnostic identifiers unless AI Sonar support explicitly asks for a redacted sample.
 
 ## Operational Checks
 
@@ -81,5 +68,4 @@ Do not include API keys, management tokens, private media, full prompts, provide
 | Error Handling | [Error Handling](/guides/error-handling) |
 | Rate Limits | [Rate Limits](/guides/rate-limits) |
 | Billing & Pricing | [Billing & Pricing](/guides/billing) |
-| Get API Key Usage | [Get API Key Usage](/api-reference/management/get-api-key-usage) |
 | Get Task Status | [Get Task Status](/api-reference/tasks/get-task-status) |

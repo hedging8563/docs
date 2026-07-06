@@ -71,7 +71,7 @@ AI Sonar 的 Agent-First API 会在错误响应中加入结构化提示，AI Age
       {"id": "gpt-5-mini"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://console.aisonar.dev/billing."
+    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://console.aisonar.dev/customer/billing."
   }
 }
 ```
@@ -146,8 +146,6 @@ AI Sonar 的 Agent-First API 会在错误响应中加入结构化提示，AI Age
 ## 原生端点头部
 
 当你对有原生端点（Anthropic 或 Gemini）的模型调用 `/v1/chat/completions` 时，**成功响应** 会包含优化头部：
-
-
 
 | 模型提供方 | 建议的端点 | 好处 |
 |---------------|-------------------|---------|

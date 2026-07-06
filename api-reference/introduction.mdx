@@ -21,7 +21,7 @@ All API endpoints require authentication using a Bearer token:
 Authorization: Bearer sk-your-api-key
 ```
 
-Get your API key from the [Dashboard](https://console.aisonar.dev).
+Get your API key from the [Dashboard](https://console.aisonar.dev/customer).
 
 <Warning>
 **About the Interactive Playground**: The playground on this documentation site is for demonstration purposes only and does not support entering API keys. To test the API, please use:
@@ -73,7 +73,7 @@ Some image models may return results inline, some may return task-based response
 | `/v1/realtime?model={model}` | WS | Realtime WebSocket sessions |
 
 <Info>
-Use `/v1/realtime` for WebSocket upgrade requests. A plain `GET /v1/realtime` returns endpoint metadata for clients that cannot inspect WebSocket routes directly.
+Use `/v1/realtime` for WebSocket upgrade requests. A plain `GET /v1/realtime` returns endpoint metadata for clients that cannot inspect WebSocket routes directly. It is not the OpenAI Realtime REST surface; client secret, translation client secret, Calls, and legacy beta session endpoints are not currently exposed.
 </Info>
 
 ### Video
