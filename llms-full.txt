@@ -1,0 +1,36 @@
+# AI Sonar
+
+> Unified AI API access for text, image, audio, video, and multimodal models.
+
+## Quick Start
+
+Base URL: https://api.aisonar.dev/v1
+Authentication: Bearer token
+Console: https://console.aisonar.dev/customer
+
+```bash
+curl https://api.aisonar.dev/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-5.2","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+## Documentation
+
+- Introduction: https://docs.aisonar.dev/introduction
+- Quickstart: https://docs.aisonar.dev/quickstart
+- Authentication: https://docs.aisonar.dev/authentication
+- Models and pricing: https://aisonar.dev/models
+- API reference: https://docs.aisonar.dev/api-reference/introduction
+
+## Common API Reference
+
+- List models: GET https://api.aisonar.dev/v1/models
+- Chat completions: POST https://api.aisonar.dev/v1/chat/completions
+- Responses: POST https://api.aisonar.dev/v1/responses
+- Messages: POST https://api.aisonar.dev/v1/messages
+- Gemini native generate content: POST https://api.aisonar.dev/v1beta/models/{model}:generateContent
+- Images: POST https://api.aisonar.dev/v1/images/generations
+- Video: POST https://api.aisonar.dev/v1/videos/generations
+- Audio speech: POST https://api.aisonar.dev/v1/audio/speech
+- Realtime: WS wss://api.aisonar.dev/v1/realtime?model={model}
