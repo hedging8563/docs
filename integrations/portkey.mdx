@@ -1,0 +1,43 @@
+---
+title: "Portkey Gateway"
+description: "Route AI Sonar OpenAI-compatible chat traffic through Portkey custom-host settings"
+---
+
+## Overview
+
+Portkey Gateway can route OpenAI-compatible chat requests to AI Sonar through a custom host.
+
+<Note>
+**Type**: AI Gateway
+
+**Primary Path**: OpenAI-compatible chat completions through a custom host
+
+**Support Confidence**: Supported path
+</Note>
+
+## Provider Values
+
+| Field | Value |
+|-------|-------|
+| Portkey API key | `$PORTKEY_API_KEY` |
+| Custom host | `https://api.aisonar.dev/v1` |
+| Provider | `openai` |
+| Upstream API key | `$API_KEY` |
+| Default model | `gpt-5.4-mini` |
+
+## Chat Completions
+
+Route the request with Portkey's custom-host parameters:
+
+```bash
+curl https://api.portkey.ai/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "x-portkey-api-key: $PORTKEY_API_KEY" \
+  -H "x-portkey-custom-host: https://api.aisonar.dev/v1" \
+  -H "x-portkey-provider: openai" \
+  -H "Authorization: Bearer $API_KEY" \
+  -d '{
+    "model": "gpt-5.4-mini",
+    "messages": [{"role": "user", "content": "Say hello."}]
+  }'
+```

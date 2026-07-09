@@ -1,0 +1,34 @@
+---
+title: "Agno"
+description: "Use AI Sonar models in Agno agents"
+---
+
+## Overview
+
+Agno can use AI Sonar as an OpenAI-compatible model provider for agents and workflows.
+
+<Note>
+**Type**: Agent Framework
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported path
+</Note>
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## OpenAI-Compatible Fallback
+
+Use Agno's OpenAI-compatible model path with:
+
+- Base URL: `https://api.aisonar.dev/v1`
+- API key: `API_KEY`
+- Model: `gpt-5.4-mini`
+
+## Model Suggestions
+
+Use `gpt-5.4-mini` for default agents, `gpt-5.4` or `claude-sonnet-5` for deeper reasoning, and `deepseek-v4-flash` for faster loops.

@@ -1,0 +1,34 @@
+---
+title: "LangBot"
+description: "将 LangBot 机器人工作流连接到 AI Sonar 模型"
+---
+
+## 概述
+
+LangBot 可以通过兼容 OpenAI 的 LLM 请求器调用 AI Sonar。
+
+<Note>
+**类型**: 机器人平台
+
+**主要路径**: 兼容 OpenAI 的聊天补全 (chat completions)
+
+**支持置信度**: 在范围限制内支持
+</Note>
+
+## 兼容 OpenAI 的配置
+
+请使用兼容 OpenAI 的请求器：
+
+| 字段 | 值 |
+|-------|-------|
+| 请求器 | OpenAI Chat Completions |
+| Base URL | `https://api.aisonar.dev/v1` |
+| API Key | `sk-your-api-key` |
+| 模型 | `gpt-5.4-mini` |
+
+## 推荐模型
+
+- `gpt-5.4-mini`：适用于大多数机器人交互
+- `claude-sonnet-5`：适用于长文本写作和推理
+- `deepseek-v4-flash`：适用于快速编码和推理循环
+- `gemini-3.5-flash`：适用于快速通用工作流

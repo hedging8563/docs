@@ -1,0 +1,44 @@
+---
+title: "Haystack"
+description: "Use AI Sonar with Haystack OpenAIChatGenerator"
+---
+
+## Overview
+
+Haystack's `OpenAIChatGenerator` supports custom OpenAI-compatible deployments through `api_base_url`. Point it at AI Sonar and provide a AI Sonar API key.
+
+<Note>
+**Type**: RAG and pipeline framework
+
+**Primary Path**: OpenAI-compatible Chat Completions
+
+**Support Confidence**: Supported OpenAI-compatible path
+</Note>
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## Generator
+
+```python
+from haystack.components.generators.chat import OpenAIChatGenerator
+from haystack.dataclasses import ChatMessage
+from haystack.utils import Secret
+
+generator = OpenAIChatGenerator(
+    api_key=Secret.from_env_var("API_KEY"),
+    api_base_url="https://api.aisonar.dev/v1",
+    model="claude-sonnet-5",
+)
+
+response = generator.run(
+    messages=[ChatMessage.from_user("Summarize this document in one sentence.")]
+)
+```
+
+## Endpoint Notes
+
+Use this path for Haystack chat generator pipelines. For embeddings, configure the matching Haystack embedding component with AI Sonar's `/v1` base URL if your pipeline uses AI Sonar embeddings.

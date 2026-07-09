@@ -1,0 +1,31 @@
+---
+title: "Cherry Studio"
+description: "Connect Cherry Studio to AI Sonar with OpenAI-compatible and native endpoint options"
+---
+
+## Overview
+
+Cherry Studio can use AI Sonar through a custom OpenAI-compatible provider.
+
+<Note>
+**Type**: Chat App
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Native Paths**: Responses, Anthropic Messages, Gemini-compatible endpoints when exposed by the client
+</Note>
+
+## Configure as a Custom Provider
+
+1. Open **Settings** -> **Model Provider**
+2. Add an OpenAI-compatible provider
+3. Enter:
+   - **Name**: AI Sonar
+   - **API Base URL**: `https://api.aisonar.dev/v1`
+   - **API Key**: `sk-your-api-key`
+4. Add a model such as `gpt-5.4-mini`
+5. Save and test the provider.
+
+## Good Starter Models
+
+Use `gpt-5.4-mini` for the default model, then add `claude-sonnet-5`, `gemini-3.5-flash`, and `deepseek-v4-flash` for broader coverage.

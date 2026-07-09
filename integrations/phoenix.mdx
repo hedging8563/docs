@@ -1,0 +1,63 @@
+---
+title: "Phoenix"
+description: "Trace AI Sonar OpenAI-compatible requests with Arize Phoenix"
+---
+
+## Overview
+
+Phoenix can trace AI Sonar requests by auto-instrumenting the OpenAI Python client configured with AI Sonar's OpenAI-compatible base URL.
+
+<Note>
+**Type**: Observability
+
+**Primary Path**: OpenAI SDK instrumentation
+
+**Support Confidence**: Supported OpenAI-compatible tracing path
+</Note>
+
+## Installation
+
+```bash
+pip install arize-phoenix openinference-instrumentation-openai openai
+```
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## Register Phoenix
+
+```python
+from phoenix.otel import register
+
+tracer_provider = register(
+    project_name="aisonar-app",
+    auto_instrument=True,
+)
+```
+
+## Call AI Sonar
+
+```python
+import os
+
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["API_KEY"],
+    base_url="https://api.aisonar.dev/v1",
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet-5",
+    messages=[{"role": "user", "content": "Write a short haiku."}],
+)
+
+print(response.choices[0].message.content)
+```
+
+## Endpoint Notes
+
+Phoenix traces the OpenAI SDK call path. Use this page for Chat Completions style AI Sonar calls. Other AI Sonar native endpoints can still be traced if your application instrumentation captures the client you use for those requests.

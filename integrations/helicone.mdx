@@ -1,0 +1,67 @@
+---
+title: "Helicone"
+description: "Observe AI Sonar requests through Helicone Gateway"
+---
+
+## Overview
+
+Helicone can proxy and observe AI Sonar's OpenAI-compatible requests by routing them through Helicone Gateway and targeting AI Sonar.
+
+<Note>
+**Type**: Observability Gateway
+
+**Primary Path**: OpenAI-compatible chat completions through Helicone Gateway
+
+**Support Confidence**: Supported observability path
+</Note>
+
+## Environment
+
+```bash
+export HELICONE_API_KEY="your-helicone-key"
+export API_KEY="sk-your-api-key"
+```
+
+## cURL
+
+```bash
+curl --request POST \
+  --url https://gateway.helicone.ai/v1/chat/completions \
+  --header "Authorization: Bearer $API_KEY" \
+  --header "Helicone-Auth: Bearer $HELICONE_API_KEY" \
+  --header "Helicone-Target-Url: https://api.aisonar.dev" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "model": "gpt-5.4-mini",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello from AI Sonar through Helicone."
+      }
+    ]
+  }'
+```
+
+## OpenAI SDK
+
+```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: process.env.API_KEY,
+  baseURL: "https://gateway.helicone.ai/v1",
+  defaultHeaders: {
+    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+    "Helicone-Target-Url": "https://api.aisonar.dev",
+  },
+});
+
+const response = await client.chat.completions.create({
+  model: "claude-sonnet-5",
+  messages: [{ role: "user", content: "Write one concise product summary." }],
+});
+```
+
+## Scope
+
+This setup is for OpenAI-compatible `/v1` traffic. AI Sonar also exposes native Responses, Anthropic Messages, and Gemini-compatible endpoints; use direct AI Sonar routes for those native formats unless your observability proxy explicitly supports them.

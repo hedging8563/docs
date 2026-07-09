@@ -1,0 +1,53 @@
+---
+title: "Guardrails"
+description: "Validate AI Sonar model outputs with Guardrails"
+---
+
+## Overview
+
+Guardrails can wrap any callable compatible with its LLM API interface. For AI Sonar, configure the OpenAI SDK with AI Sonar's base URL and pass the chat completions callable to your guard.
+
+<Note>
+**Type**: Validation and structured-output framework
+
+**Primary Path**: OpenAI-compatible Chat Completions
+
+**Support Confidence**: Supported OpenAI-compatible path
+</Note>
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## Example
+
+```python
+import os
+
+from guardrails import Guard
+from openai import OpenAI
+from pydantic import BaseModel, Field
+
+class Pet(BaseModel):
+    pet_type: str = Field(description="Species of pet")
+    name: str = Field(description="A unique pet name")
+
+guard = Guard.for_pydantic(output_class=Pet)
+
+client = OpenAI(
+    api_key=os.environ["API_KEY"],
+    base_url="https://api.aisonar.dev/v1",
+)
+
+raw_output, validated_output, *rest = guard(
+    llm_api=client.chat.completions.create,
+    model="claude-sonnet-5",
+    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+)
+```
+
+## Endpoint Notes
+
+Guardrails focuses on validation around the LLM call. Use the OpenAI-compatible path for chat-completions flows, or pass a custom callable if your application needs a native AI Sonar endpoint.

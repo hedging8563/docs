@@ -1,0 +1,34 @@
+---
+title: "List Tasks (Volc Compatible)"
+openapi: "GET /api/v3/contents/generations/tasks"
+description: "List recent Seedance compatibility tasks for the current organization."
+---
+
+## Overview
+
+The list endpoint returns recent compatibility tasks for the authenticated organization. Use it for consoles, retries, and customer support views; use the get endpoint when you already know the task ID.
+
+See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Generation](/guides/video-generation).
+
+## Listing And Filters
+
+- `page_num`: defaults to `1`.
+- `page_size`: defaults to `20`, maximum `500`.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, or `expired`.
+- `filter.task_ids`: comma-separated task IDs.
+- `filter.model`: model identifier.
+- `filter.service_tier`: service tier value such as `default`.
+
+The response contains `items` and `total`. Each item uses the same task shape as the get-task endpoint.
+
+## Example
+
+```bash
+curl "https://api.aisonar.dev/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+```bash
+curl "https://api.aisonar.dev/api/v3/contents/generations/tasks?filter.task_ids=cgt-0123456789abcdef0123456789abcdef" \
+  -H "Authorization: Bearer $API_KEY"
+```

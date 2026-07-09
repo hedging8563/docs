@@ -1,0 +1,34 @@
+---
+title: "LangBot"
+description: "Connect LangBot bot workflows to AI Sonar models"
+---
+
+## Overview
+
+LangBot can call AI Sonar through an OpenAI-compatible LLM requester.
+
+<Note>
+**Type**: Bot Platform
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported with scope limits
+</Note>
+
+## OpenAI-Compatible Setup
+
+Use the OpenAI-compatible requester:
+
+| Field | Value |
+|-------|-------|
+| Requester | OpenAI Chat Completions |
+| Base URL | `https://api.aisonar.dev/v1` |
+| API Key | `sk-your-api-key` |
+| Model | `gpt-5.4-mini` |
+
+## Recommended Models
+
+- `gpt-5.4-mini` for most bot interactions
+- `claude-sonnet-5` for longer writing and reasoning
+- `deepseek-v4-flash` for fast coding and reasoning loops
+- `gemini-3.5-flash` for fast general workflows

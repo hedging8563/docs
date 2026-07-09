@@ -1,0 +1,61 @@
+---
+title: "OpenAI Agents SDK"
+description: "Use AI Sonar models with the OpenAI Agents SDK"
+---
+
+## Overview
+
+The OpenAI Agents SDK can use AI Sonar through an OpenAI-compatible client and `OpenAIChatCompletionsModel`.
+
+<Note>
+**Type**: Python Agent SDK
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported chat-completions path
+</Note>
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+export API_BASE_URL="https://api.aisonar.dev/v1"
+export MODEL_ID="gpt-5.4-mini"
+```
+
+## Example
+
+```python
+import asyncio
+import os
+
+from openai import AsyncOpenAI
+
+from agents import Agent, OpenAIChatCompletionsModel, Runner, set_tracing_disabled
+
+client = AsyncOpenAI(
+    base_url=os.getenv("API_BASE_URL", "https://api.aisonar.dev/v1"),
+    api_key=os.environ["API_KEY"],
+)
+
+set_tracing_disabled(disabled=True)
+
+async def main():
+    agent = Agent(
+        name="Assistant",
+        instructions="You are concise and practical.",
+        model=OpenAIChatCompletionsModel(
+            model=os.getenv("MODEL_ID", "gpt-5.4-mini"),
+            openai_client=client,
+        ),
+    )
+
+    result = await Runner.run(agent, "Explain custom model providers in one paragraph.")
+    print(result.final_output)
+
+asyncio.run(main())
+```
+
+## Scope
+
+This path uses Chat Completions compatibility. AI Sonar's native Responses endpoint is available at `https://api.aisonar.dev/v1/responses`, but SDK features that depend on OpenAI-specific Responses semantics should be verified with the exact model and workflow before production use.

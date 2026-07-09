@@ -1,0 +1,62 @@
+---
+title: "Opik"
+description: "Trace AI Sonar OpenAI-compatible requests with Opik"
+---
+
+## Overview
+
+Opik can log AI Sonar calls by wrapping an OpenAI client that points to AI Sonar's OpenAI-compatible endpoint.
+
+<Note>
+**Type**: Observability
+
+**Primary Path**: OpenAI SDK tracing wrapper
+
+**Support Confidence**: Supported OpenAI-compatible tracing path
+</Note>
+
+## Installation
+
+```bash
+pip install opik openai
+```
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+export OPIK_PROJECT_NAME="aisonar-integration-demo"
+```
+
+## Wrap the OpenAI Client
+
+```python
+import os
+
+from openai import OpenAI
+from opik.integrations.openai import track_openai
+
+client = OpenAI(
+    api_key=os.environ["API_KEY"],
+    base_url="https://api.aisonar.dev/v1",
+)
+
+openai_client = track_openai(client)
+```
+
+## Log a Chat Completion
+
+```python
+completion = openai_client.chat.completions.create(
+    model="claude-sonnet-5",
+    messages=[
+        {"role": "user", "content": "Summarize why LLM observability matters."}
+    ],
+)
+
+print(completion.choices[0].message.content)
+```
+
+## Endpoint Notes
+
+This setup traces the OpenAI-compatible SDK path. If you use AI Sonar native endpoints outside the OpenAI SDK, instrument that client or workflow separately.

@@ -1,0 +1,46 @@
+---
+title: "Graphiti"
+description: "Use AI Sonar as an OpenAI-compatible Graphiti LLM provider"
+---
+
+## Overview
+
+Graphiti supports OpenAI-compatible `/v1` endpoints through `OpenAIGenericClient`. Point that client at AI Sonar and choose a AI Sonar model.
+
+<Note>
+**Type**: Knowledge graph memory framework
+
+**Primary Path**: OpenAI-compatible Chat Completions
+
+**Support Confidence**: Supported OpenAI-compatible path
+</Note>
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## LLM Client
+
+```python
+import os
+
+from graphiti_core.llm_client.config import LLMConfig
+from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
+
+llm_config = LLMConfig(
+    api_key=os.environ["API_KEY"],
+    model="claude-sonnet-5",
+    small_model="gpt-5.4-mini",
+    base_url="https://api.aisonar.dev/v1",
+)
+
+llm_client = OpenAIGenericClient(config=llm_config)
+```
+
+Pass `llm_client` into your `Graphiti(...)` instance alongside your graph database and embedder configuration.
+
+## Endpoint Notes
+
+Graphiti's OpenAI-compatible path is chat-completions oriented. Use models that reliably return structured JSON for extraction and deduplication tasks.

@@ -1,0 +1,53 @@
+---
+title: "查询任务（火山兼容）"
+openapi: "GET /api/v3/contents/generations/tasks/{id}"
+description: "按 cgt 任务 ID 查询 Seedance 兼容任务。"
+---
+
+## 概览
+
+使用创建响应返回的 `cgt-...` ID 查询任务。任务为 `queued` 或 `running` 时，每隔几秒轮询一次；任务变为 `succeeded`、`failed`、`cancelled` 或 `expired` 后停止轮询。
+
+另见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video) 和 [视频生成](/zh/guides/video-generation)。
+
+## 状态值
+
+- `queued`：已接受，等待执行。
+- `running`：正在生成。
+- `succeeded`：结果已就绪，`content.video_url` 可用。
+- `failed`：生成失败，请查看 `error.code` 和 `error.message`。
+- `cancelled`：任务在完成前被取消。
+- `expired`：任务在完成前过期。
+
+## 响应字段
+
+- `id`：兼容任务 ID，以 `cgt-` 开头。
+- `model`：兼容返回的模型标识。
+- `status`：上述状态之一。
+- `progress`：只有存在真实进度时返回。
+- `content.video_url`：成功后的最终视频 URL。
+- `content.last_frame_url`：仅在请求且可用时返回。
+- `usage`：可用时返回 token 用量。
+- `created_at` 和 `updated_at`：任务时间戳。
+
+## 示例
+
+```bash
+curl https://api.aisonar.dev/api/v3/contents/generations/tasks/cgt-0123456789abcdef0123456789abcdef \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+```json
+{
+  "id": "cgt-0123456789abcdef0123456789abcdef",
+  "model": "doubao-seedance-2-0-260128",
+  "status": "succeeded",
+  "content": {
+    "video_url": "https://example.com/result.mp4"
+  },
+  "usage": {
+    "completion_tokens": 123456
+  },
+  "error": null
+}
+```

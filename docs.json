@@ -154,6 +154,10 @@
                 "group": "Video & Materials",
                 "pages": [
                   "api-reference/video/create-video",
+                  "api-reference/video/create-volc-compatible-seedance-task",
+                  "api-reference/video/get-volc-compatible-seedance-task",
+                  "api-reference/video/list-volc-compatible-seedance-tasks",
+                  "api-reference/video/delete-volc-compatible-seedance-task",
                   "api-reference/video/get-video-status",
                   "api-reference/video/create-real-person-verification-session",
                   "api-reference/video/bind-real-person-verification-result",
@@ -228,7 +232,8 @@
                   "integrations/codex-cli",
                   "integrations/gemini-cli",
                   "integrations/pi-coding-agent",
-                  "integrations/opencode"
+                  "integrations/opencode",
+                  "integrations/openhands"
                 ]
               },
               {
@@ -245,13 +250,45 @@
                   "integrations/vercel-ai-sdk",
                   "integrations/langchain",
                   "integrations/llamaindex",
-                  "integrations/dify"
+                  "integrations/openai-agents-sdk",
+                  "integrations/autogen",
+                  "integrations/semantic-kernel",
+                  "integrations/crewai",
+                  "integrations/pydantic-ai",
+                  "integrations/dspy",
+                  "integrations/langflow",
+                  "integrations/haystack",
+                  "integrations/graphiti",
+                  "integrations/dify",
+                  "integrations/flowise",
+                  "integrations/mem0",
+                  "integrations/agno",
+                  "integrations/browser-use",
+                  "integrations/voltagent",
+                  "integrations/ragas",
+                  "integrations/guardrails",
+                  "integrations/promptflow",
+                  "integrations/promptfoo",
+                  "integrations/portkey",
+                  "integrations/helicone",
+                  "integrations/langfuse",
+                  "integrations/openlit",
+                  "integrations/openllmetry",
+                  "integrations/langbot",
+                  "integrations/phoenix",
+                  "integrations/opik"
                 ]
               },
               {
                 "group": "Chat Apps",
                 "pages": [
-                  "integrations/ai-chat-apps"
+                  "integrations/ai-chat-apps",
+                  "integrations/open-webui",
+                  "integrations/chatbox",
+                  "integrations/deepchat",
+                  "integrations/jan",
+                  "integrations/librechat",
+                  "integrations/cherry-studio"
                 ]
               }
             ]
@@ -368,6 +405,10 @@
                 "group": "视频与素材",
                 "pages": [
                   "zh/api-reference/video/create-video",
+                  "zh/api-reference/video/create-volc-compatible-seedance-task",
+                  "zh/api-reference/video/get-volc-compatible-seedance-task",
+                  "zh/api-reference/video/list-volc-compatible-seedance-tasks",
+                  "zh/api-reference/video/delete-volc-compatible-seedance-task",
                   "zh/api-reference/video/get-video-status",
                   "zh/api-reference/video/create-real-person-verification-session",
                   "zh/api-reference/video/bind-real-person-verification-result",
@@ -442,7 +483,8 @@
                   "zh/integrations/codex-cli",
                   "zh/integrations/gemini-cli",
                   "zh/integrations/pi-coding-agent",
-                  "zh/integrations/opencode"
+                  "zh/integrations/opencode",
+                  "zh/integrations/openhands"
                 ]
               },
               {
@@ -459,13 +501,45 @@
                   "zh/integrations/vercel-ai-sdk",
                   "zh/integrations/langchain",
                   "zh/integrations/llamaindex",
-                  "zh/integrations/dify"
+                  "zh/integrations/openai-agents-sdk",
+                  "zh/integrations/autogen",
+                  "zh/integrations/semantic-kernel",
+                  "zh/integrations/crewai",
+                  "zh/integrations/pydantic-ai",
+                  "zh/integrations/dspy",
+                  "zh/integrations/langflow",
+                  "zh/integrations/haystack",
+                  "zh/integrations/graphiti",
+                  "zh/integrations/dify",
+                  "zh/integrations/flowise",
+                  "zh/integrations/mem0",
+                  "zh/integrations/agno",
+                  "zh/integrations/browser-use",
+                  "zh/integrations/voltagent",
+                  "zh/integrations/ragas",
+                  "zh/integrations/guardrails",
+                  "zh/integrations/promptflow",
+                  "zh/integrations/promptfoo",
+                  "zh/integrations/portkey",
+                  "zh/integrations/helicone",
+                  "zh/integrations/langfuse",
+                  "zh/integrations/openlit",
+                  "zh/integrations/openllmetry",
+                  "zh/integrations/langbot",
+                  "zh/integrations/phoenix",
+                  "zh/integrations/opik"
                 ]
               },
               {
                 "group": "聊天应用",
                 "pages": [
-                  "zh/integrations/ai-chat-apps"
+                  "zh/integrations/ai-chat-apps",
+                  "zh/integrations/open-webui",
+                  "zh/integrations/chatbox",
+                  "zh/integrations/deepchat",
+                  "zh/integrations/jan",
+                  "zh/integrations/librechat",
+                  "zh/integrations/cherry-studio"
                 ]
               }
             ]

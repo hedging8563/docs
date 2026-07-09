@@ -1,0 +1,63 @@
+---
+title: "Phoenix"
+description: "使用 Arize Phoenix 追踪 AI Sonar 兼容 OpenAI 的请求"
+---
+
+## 概述
+
+Phoenix 可以通过自动检测配置了 AI Sonar OpenAI 兼容 base URL 的 OpenAI Python 客户端，从而追踪 AI Sonar 请求。
+
+<Note>
+**类型**: 可观测性 (Observability)
+
+**主要路径**: OpenAI SDK 检测
+
+**支持置信度**: 支持的 OpenAI 兼容追踪路径
+</Note>
+
+## 安装
+
+```bash
+pip install arize-phoenix openinference-instrumentation-openai openai
+```
+
+## 环境
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## 注册 Phoenix
+
+```python
+from phoenix.otel import register
+
+tracer_provider = register(
+    project_name="aisonar-app",
+    auto_instrument=True,
+)
+```
+
+## 调用 AI Sonar
+
+```python
+import os
+
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["API_KEY"],
+    base_url="https://api.aisonar.dev/v1",
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet-5",
+    messages=[{"role": "user", "content": "Write a short haiku."}],
+)
+
+print(response.choices[0].message.content)
+```
+
+## 端点说明
+
+Phoenix 会追踪 OpenAI SDK 的调用路径。请使用此页面进行 Chat Completions 风格的 AI Sonar 调用。如果您的应用程序检测捕获了您用于这些请求的客户端，其他 AI Sonar 原生端点仍然可以被追踪。

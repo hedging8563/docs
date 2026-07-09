@@ -1,0 +1,43 @@
+---
+title: "Portkey Gateway"
+description: "通过 Portkey 自定义主机转发 AI Sonar 的 OpenAI 兼容聊天流量"
+---
+
+## 概述
+
+Portkey Gateway 可以通过自定义主机将 OpenAI 兼容的聊天请求路由至 AI Sonar。
+
+<Note>
+**类型**: AI Gateway
+
+**主要路径**: 通过自定义主机转发 OpenAI 兼容的聊天补全
+
+**支持置信度**: 支持的路径
+</Note>
+
+## 提供商配置值
+
+| 字段 | 值 |
+|------|----|
+| Portkey API Key | `$PORTKEY_API_KEY` |
+| 自定义主机 | `https://api.aisonar.dev/v1` |
+| Provider | `openai` |
+| 上游 API Key | `$API_KEY` |
+| 默认模型 | `gpt-5.4-mini` |
+
+## 聊天补全 (Chat Completions)
+
+使用 Portkey 的自定义主机参数转发请求：
+
+```bash
+curl https://api.portkey.ai/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "x-portkey-api-key: $PORTKEY_API_KEY" \
+  -H "x-portkey-custom-host: https://api.aisonar.dev/v1" \
+  -H "x-portkey-provider: openai" \
+  -H "Authorization: Bearer $API_KEY" \
+  -d '{
+    "model": "gpt-5.4-mini",
+    "messages": [{"role": "user", "content": "Say hello."}]
+  }'
+```

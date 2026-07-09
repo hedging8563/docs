@@ -26,6 +26,31 @@ Seedance 2.0 supports text-to-video, image-to-video, start/end-frame video, refe
 | `video-to-video` | `prompt`, `video_url` or compatible video input |
 | `video-extension` | `task_id` or model-specific continuation input |
 
+## Volc-Compatible Seedance Endpoint
+
+Use this endpoint when your existing system already builds Seedance requests with Volc-style `content[]`, REST task paths, or Action names, and you want to change the base URL and authentication without rewriting the request shape. For new cross-model video integrations, prefer AI Sonar's unified [`/v1/videos/generations`](/api-reference/video/create-video) API.
+
+### Migration Flow
+
+1. Authenticate with `Authorization: Bearer <API_KEY>`. Volc AK/SK signatures are not accepted in this version.
+2. Create with REST `POST /api/v3/contents/generations/tasks`, or with Action `POST /api/v3?Action=CreateContentsGenerationsTasks&Version=2024-01-01`.
+3. Store the returned `cgt-...` task ID and poll the task endpoint until `status` is `succeeded`, `failed`, `cancelled`, or `expired`.
+4. `callback_url` is rejected for now, so do not rely on completion callbacks for this endpoint.
+
+### Request Body Notes
+
+- `content[]` accepts `text`, `image_url`, `video_url`, `audio_url`, and `draft_task` items.
+- For `image_url`, omit `role` or use `first_frame` for image-to-video; use `last_frame` together with a first frame; use `reference_image` for reference-to-video.
+- Image URLs are prepared as reusable AI Sonar materials when the selected Seedance model needs material references. If preparation takes longer than 60 seconds, the create request returns a retryable material-preparing error.
+- Common generation fields include `model`, `ratio`, `duration`, `resolution`, `generate_audio`, `watermark`, `return_last_frame`, `seed`, `priority`, `execution_expires_after`, and `safety_identifier`.
+
+### Reference Pages
+
+- [Create Task (Volc Compatible)](/api-reference/video/create-volc-compatible-seedance-task)
+- [Get Task (Volc Compatible)](/api-reference/video/get-volc-compatible-seedance-task)
+- [List Tasks (Volc Compatible)](/api-reference/video/list-volc-compatible-seedance-tasks)
+- [Cancel Task (Volc Compatible)](/api-reference/video/delete-volc-compatible-seedance-task)
+
 ## Material Concepts
 
 Seedance materials are reusable, organization-scoped references that can be selected later during video generation.
@@ -41,9 +66,9 @@ Keep `group_id` and material asset `id` separate. `group_id` is for organizing u
 
 ## Automatic Image Materials
 
-For Seedance 2.0 generation requests, you may send image URLs or supported inline data URLs directly in `image`, `image_url`, `image_urls`, `reference_images`, `start_image`, or `end_image`. AI Sonar automatically imports those images into the organization default virtual-avatar material group and keeps their role as first frame, last frame, or reference image.
+When the selected Seedance model can use the AI Sonar material library, you may send image URLs or supported inline data URLs directly in `image`, `image_url`, `image_urls`, `reference_images`, `start_image`, or `end_image`. AI Sonar imports those images into the organization default virtual-avatar material group and keeps their role as first frame, last frame, or reference image.
 
-If the material assets become `ACTIVE` within 60 seconds, generation continues in the same request. If not, the API returns `409 seedance_material_preparing` with `auto_material_asset_ids`; list or get those assets until they are `ACTIVE`, then retry with `material_asset_id` or `material_asset_ids`. Existing virtual-avatar and real-person material IDs are used as-is and are not imported again.
+If the material assets become `ACTIVE` within 60 seconds, generation continues in the same request. If not, the API returns `409 seedance_material_preparing` with `auto_material_asset_ids`; list or get those assets until they are `ACTIVE`, then retry with `material_asset_id` or `material_asset_ids`. If the selected model cannot use the material library, ordinary image URL or data URL inputs stay on the regular image path; explicit material IDs return a material availability error. Existing virtual-avatar and real-person material IDs are used as-is and are not imported again.
 
 ## Real-Person Material Verification
 
@@ -81,6 +106,8 @@ For `aigc_avatar`, `group_id` is optional; AI Sonar uses or creates the organiza
 Material ingestion is asynchronous. Poll [Get Material Asset](/api-reference/video/get-material-asset) until `status` becomes `ACTIVE`. A successful HTTP response only means the request was accepted; always read the business status. If the status is `FAILED`, inspect `error_message`, fix the source material, and create a new asset.
 
 In create-material requests, `asset_url` is only the import source. AI Sonar returns a material asset `id`; use that `id` for generation instead of reusing the original URL.
+
+AI Sonar keeps material assets in your organization material library until you delete the asset or its material group.
 
 For real-person material groups, one group maps to one real person. Uploads are checked against the verified face. Assets with multiple faces or a face that does not match the verified person can fail. For best results, upload both a full-body front reference image and a front-facing close-up where the face is clear.
 

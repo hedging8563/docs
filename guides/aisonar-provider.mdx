@@ -30,7 +30,7 @@ Native providers such as `anthropic-messages` and `google-generative-ai` should 
 ## Prerequisites
 
 - A self-hosted OpenClaw instance
-- A AI Sonar API Key — [Get one here](https://console.aisonar.dev/customer)
+- An API key — [Get one here](https://console.aisonar.dev/customer)
 
 ## Configuration
 
@@ -173,7 +173,7 @@ After saving the config, restart your OpenClaw instance and test with a simple m
 ```bash
 # Self-hosted: restart the service
 systemctl --user restart openclaw    # Linux
-launchctl stop cc.aisonar.openclaw && launchctl start cc.aisonar.openclaw  # macOS
+# macOS: restart the OpenClaw app or its configured launch service
 ```
 
 ## Next Steps

@@ -1,0 +1,44 @@
+---
+title: "VoltAgent"
+description: "Use AI Sonar models in VoltAgent agents"
+---
+
+## Overview
+
+VoltAgent accepts AI SDK language models directly. Configure an OpenAI-compatible AI SDK provider with AI Sonar's `/v1` base URL and pass the selected model into your agent.
+
+<Note>
+**Type**: TypeScript agent framework
+
+**Primary Path**: OpenAI-compatible Chat Completions through AI SDK
+
+**Support Confidence**: Supported OpenAI-compatible path
+</Note>
+
+## Environment
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## Direct AI SDK Provider
+
+```ts
+import { Agent } from "@voltagent/core";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const aisonar = createOpenAI({
+  apiKey: process.env.API_KEY,
+  baseURL: "https://api.aisonar.dev/v1",
+});
+
+const agent = new Agent({
+  name: "aisonar-agent",
+  instructions: "Answer concisely.",
+  model: aisonar("claude-sonnet-5"),
+});
+```
+
+## Endpoint Notes
+
+The direct AI SDK path is the most explicit setup. Use AI Sonar native Responses, Anthropic Messages, or Gemini endpoints only when your selected AI SDK provider/client is configured for that protocol.

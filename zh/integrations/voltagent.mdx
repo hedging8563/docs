@@ -1,0 +1,44 @@
+---
+title: "VoltAgent"
+description: "在 VoltAgent 智能体中使用 AI Sonar 模型"
+---
+
+## 概述
+
+VoltAgent 直接支持 AI SDK 语言模型。配置一个兼容 OpenAI 的 AI SDK 提供程序，并将 AI Sonar 的 `/v1` 基础 URL 传入，即可将所选模型应用于您的智能体。
+
+<Note>
+**类型**: TypeScript 智能体框架
+
+**主要路径**: 通过 AI SDK 使用兼容 OpenAI 的 Chat Completions
+
+**支持置信度**: 支持兼容 OpenAI 的路径
+</Note>
+
+## 环境配置
+
+```bash
+export API_KEY="sk-your-api-key"
+```
+
+## 直接使用 AI SDK 提供程序
+
+```ts
+import { Agent } from "@voltagent/core";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const aisonar = createOpenAI({
+  apiKey: process.env.API_KEY,
+  baseURL: "https://api.aisonar.dev/v1",
+});
+
+const agent = new Agent({
+  name: "aisonar-agent",
+  instructions: "Answer concisely.",
+  model: aisonar("claude-sonnet-5"),
+});
+```
+
+## 端点说明
+
+直接使用 AI SDK 路径是最明确的设置方式。仅当您选择的 AI SDK 提供程序/客户端配置为相应协议时，才使用 AI Sonar 原生 Responses、Anthropic Messages 或 Gemini 端点。
