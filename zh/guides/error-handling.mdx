@@ -39,7 +39,7 @@ description: "优雅地处理 API 错误"
 | 413 | 负载过大 - 输入或文件大小超限 |
 | 429 | 请求过多 - 超出速率限制 |
 | 500 | 服务器内部错误 |
-| 502 | 错误网关 - 上游提供商错误 |
+| 502 | 错误网关 - 服务错误 |
 | 503 | 服务不可用 - 服务暂时不可用 |
 | 504 | 网关超时 - 请求超时 |
 
@@ -163,31 +163,14 @@ Retry-After: 8
 - 音频文件过大（最大 25MB）
 - 输入文本超过模型上下文长度
 
-### 上游错误 (502, 503)
+### 服务错误 (5xx)
 
-| 类型 | 描述 |
-|------|-------------|
-| `upstream_error` | 提供方返回错误 |
-| `all_channels_failed` | 没有可用的提供方 |
+| 类型 | 说明 |
+|------|------|
+| `server_error` | 服务暂时无法完成请求 |
 | `timeout_error` | 请求超时 |
 
-当所有通道都失败时，响应会包含备选模型：
-
-```json
-{
-  "error": {
-    "message": "Model claude-opus-4-6 temporarily unavailable",
-    "code": "all_channels_failed",
-    "retryable": true,
-    "retry_after": 30,
-    "alternatives": [
-      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
-      {"id": "gpt-5-mini", "status": "available", "tags": []}
-    ],
-    "hint": "Retry in 30s or switch to an available model."
-  }
-}
-```
+仅当 `retryable` 为 `true` 时重试；如果响应包含 `retry_after`，请等待指定秒数。可根据 `alternatives` 改用其他可用模型。
 
 ## 在 Python 中处理错误
 

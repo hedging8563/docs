@@ -39,7 +39,7 @@ OpenAI-compatible endpoints use AI Sonar's stable gateway error types. Anthropic
 | 413 | Payload Too Large - Input or file size exceeded |
 | 429 | Too Many Requests - Rate limit exceeded |
 | 500 | Internal Server Error |
-| 502 | Bad Gateway - Upstream provider error |
+| 502 | Bad Gateway - Service error |
 | 503 | Service Unavailable - Service temporarily unavailable |
 | 504 | Gateway Timeout - Request timed out |
 
@@ -163,31 +163,14 @@ Common causes:
 - Audio file too large (max 25MB)
 - Input text exceeds model context length
 
-### Upstream Errors (502, 503)
+### Service Errors (5xx)
 
 | Type | Description |
 |------|-------------|
-| `upstream_error` | Provider returned an error |
-| `all_channels_failed` | No available providers |
-| `timeout_error` | Request timed out |
+| `server_error` | The service could not complete the request |
+| `timeout_error` | The request timed out |
 
-When all channels fail, the response includes alternative models:
-
-```json
-{
-  "error": {
-    "message": "Model claude-opus-4-6 temporarily unavailable",
-    "code": "all_channels_failed",
-    "retryable": true,
-    "retry_after": 30,
-    "alternatives": [
-      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
-      {"id": "gpt-5-mini", "status": "available", "tags": []}
-    ],
-    "hint": "Retry in 30s or switch to an available model."
-  }
-}
-```
+Retry only when `retryable` is `true`. If `retry_after` is present, wait for the specified number of seconds. Use `alternatives` to select another available model when provided.
 
 ## Handling Errors in Python
 

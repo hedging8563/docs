@@ -11,7 +11,7 @@ This page is intentionally narrower than a marketing matrix:
 
 - **Supported** means we document a concrete setup path and AI Sonar exposes the protocol shape that path expects.
 - **Strong native path** means the repo also has direct adapter or request-format evidence for that protocol family.
-- **Best-effort** means the integration can work, but the upstream client does not treat this custom gateway workflow as a stable contract.
+- **Best-effort** means the integration can work, but the client does not treat this custom gateway workflow as a stable contract.
 
 <Note>
   Unsupported fields are not handled uniformly. On compatibility routes, some fields are ignored or normalized. On `/v1/responses`, unsupported fields can return explicit `400` or `503` errors when that route cannot guarantee the requested behavior.

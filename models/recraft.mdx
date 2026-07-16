@@ -11,26 +11,14 @@ AI Sonar provides access to Recraft models. Total: **3 models** available.
 
 | Model ID | Pricing |
 |----------|--------|
-| `recraft-v3` | See dashboard |
-| `recraft-v3-svg` | See dashboard |
-| `recraft-vectorize` | See dashboard |
+| `recraft-v3` | $0.04/image |
+| `recraft-v3-svg` | $0.08/image |
+| `recraft-vectorize` | $0.01/request |
 
 ## Usage
 
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.aisonar.dev/v1"
-)
-
-response = client.chat.completions.create(
-    model="recraft-v3",
-    messages=[{"role": "user", "content": "Hello!"}]
-)
-```
+Use the model ID with its matching endpoint. See the [API Reference](/api-reference/introduction) for request formats and examples.
 
 <Note>
-Prices shown are platform prices (~70% of official rates).
+The table shows the public catalog's current input price when available. See your dashboard for complete input, output, and unit-specific pricing.
 </Note>

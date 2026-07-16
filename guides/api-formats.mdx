@@ -154,7 +154,7 @@ curl "https://api.aisonar.dev/v1beta/models/gemini-3.5-flash:streamGenerateConte
 - Existing Gemini SDK code
 - Native Gemini features
 
-**Gemini Files and Cache:** `/upload/v1beta/files`, `/v1beta/files`, `/v1beta/files:register`, and `/v1beta/cachedContents` are available on the native Gemini route. Files use Gemini File API-compatible upstream channels; explicit cache resources can also route through Vertex AI channels. Resources created through AI Sonar are bound to the same upstream channel/key for later `generateContent` calls.
+**Gemini Files and Cache:** `/upload/v1beta/files`, `/v1beta/files`, `/v1beta/files:register`, and `/v1beta/cachedContents` are available on the native Gemini route. Files use Gemini File API-compatible service channels; explicit cache resources can also route through Vertex AI channels. Resources created through AI Sonar are bound to the same service channel/key for later `generateContent` calls.
 
 ## Tool Compatibility Boundary
 

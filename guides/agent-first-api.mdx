@@ -78,29 +78,27 @@ When account balance is too low for the estimated cost:
 
 `suggestions` contains models cheaper than the estimated cost that the agent can switch to.
 
-### all_channels_failed (503)
+### Temporary service errors (5xx)
 
-When all upstream channels for a model are unavailable:
+When a model is temporarily unavailable, retry only when the response sets `retryable` to `true`:
 
 ```json
 {
   "error": {
     "message": "Model claude-opus-4-6 temporarily unavailable",
-    "code": "all_channels_failed",
+    "type": "server_error",
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
       {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
       {"id": "gpt-5-mini", "status": "available", "tags": []}
     ],
-    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
+    "hint": "Retry in 30s or try an alternative model."
   }
 }
 ```
 
-<Note>
-`retryable` is `false` when the reason is `no_channels` (no channels configured for this model). It's `true` only for transient failures like circuit breaker trips or quota exhaustion.
-</Note>
+When `retryable` is `false`, follow `hint` or switch to a model listed in `alternatives`.
 
 ### rate_limit_exceeded (429)
 
@@ -120,12 +118,12 @@ When all upstream channels for a model are unavailable:
 The `retry_after` value is calculated from the actual rate limit window reset time.
 
 <Note>
-OpenAI-compatible endpoints use AI Sonar's stable public error types such as `rate_limit_exceeded`, `upstream_error`, and `all_channels_failed`. Anthropic-compatible and Gemini-compatible endpoints use their own native response shapes.
+OpenAI-compatible endpoints use the standard error envelope shown above. Anthropic-compatible and Gemini-compatible endpoints use their native response formats.
 </Note>
 
 ### context_length_exceeded (400)
 
-When input exceeds the model's context window (upstream error, enriched with hints):
+When input exceeds the model's context window (with corrective hints):
 
 ```json
 {
@@ -185,7 +183,7 @@ These headers appear on both streaming and non-streaming responses.
 |-------|--------|-------------|
 | `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | Model type |
 | `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | How the model is billed |
-| `cache_pricing` | object or `null` | Model-specific upstream prompt cache prices. |
+| `cache_pricing` | object or `null` | Model-specific prompt cache prices. |
 | `agent_preferences.<scene>` | object | Non-chat recommendation snapshot for that scene, only on `GET /v1/models?recommended_for=<scene>` |
 
 When `recommended_for` is present, `agent_preferences` is derived from a cached 24-hour success-rate snapshot:

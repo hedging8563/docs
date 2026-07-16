@@ -154,7 +154,7 @@ curl "https://api.aisonar.dev/v1beta/models/gemini-3.5-flash:streamGenerateConte
 - 已有 Gemini SDK 代码
 - 原生 Gemini 功能
 
-**Gemini Files 和 Cache：** 原生 Gemini 路径支持 `/upload/v1beta/files`、`/v1beta/files`、`/v1beta/files:register` 和 `/v1beta/cachedContents`。Files 使用兼容 Gemini File API 的上游渠道；显式 Cache 资源也可以走 Vertex AI 渠道。通过 AI Sonar 创建的资源会绑定到同一个上游渠道/key，后续 `generateContent` 会沿用该绑定。
+**Gemini Files 和 Cache：** 原生 Gemini 路径支持 `/upload/v1beta/files`、`/v1beta/files`、`/v1beta/files:register` 和 `/v1beta/cachedContents`。Files 使用兼容 Gemini File API 的服务端渠道；显式 Cache 资源也可以走 Vertex AI 渠道。通过 AI Sonar 创建的资源会绑定到同一个服务端渠道/key，后续 `generateContent` 会沿用该绑定。
 
 ## 工具兼容边界
 

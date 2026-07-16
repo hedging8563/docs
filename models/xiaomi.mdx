@@ -15,7 +15,7 @@ AI Sonar provides access to Xiaomi (MiMo) models. Total: **5 models** available.
 | `mimo-v2-omni` | $0.4/1M in |
 | `mimo-v2-pro` | $1/1M in |
 | `mimo-v2.5` | $0.4/1M in |
-| `mimo-v2.5-pro` | $1.02941176/1M in |
+| `mimo-v2.5-pro` | $1/1M in |
 
 ## Usage
 
@@ -28,11 +28,11 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="mimo-v2.5",
+    model="mimo-v2-flash",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
 <Note>
-Prices shown are platform prices (~70% of official rates).
+The table shows the public catalog's current input price when available. See your dashboard for complete input, output, and unit-specific pricing.
 </Note>

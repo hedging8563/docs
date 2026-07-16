@@ -7,11 +7,24 @@ description: "Configure AI Sonar as a custom provider in OpenClaw using OpenAI, 
 This guide is for **self-hosted OpenClaw** users who want to connect AI Sonar as their AI provider.
 </Note>
 
-## Overview
+## Recommended: install the plugin
 
-For current OpenClaw versions, the recommended approach is to configure AI Sonar through `models.providers`.
+For standard OpenClaw agent execution, install the AI Sonar provider plugin:
 
-If you just want to get started quickly, configuring `aisonar` alone is enough. Add the other providers only when you explicitly need **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** behavior.
+```bash
+openclaw plugins install @aisonarai/openclaw-provider
+openclaw onboard --aisonar-api-key "$API_KEY"
+```
+
+The plugin discovers AI Sonar's live chat-model catalog and keeps 18 fallback models for offline discovery. Models use the `aisonar/<model-id>` format.
+
+[npm package](https://www.npmjs.com/package/@aisonarai/openclaw-provider) · [ClawHub listing](https://clawhub.ai/aisonarai/plugins/openclaw-provider) · [Source code](https://github.com/hedging8563/aisonar-openclaw-provider)
+
+## Manual provider configuration
+
+Use manual `models.providers` entries when you explicitly need separate **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** routes.
+
+If you choose manual configuration, configuring `aisonar` alone is enough. Add the other providers only when you explicitly need **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** behavior.
 
 | Provider | OpenClaw `api` | Best for | baseUrl |
 |----------|----------------|----------|---------|

@@ -4,7 +4,7 @@ openapi: "POST /v1/worlds/list"
 description: "列出通过 AI Sonar 创建的已完成 World Labs Marble 世界"
 ---
 
-列出通过 AI Sonar 创建的已完成 World Labs Marble 世界。结果按你的组织隔离；AI Sonar 不会暴露共享上游账号的全量列表。
+列出通过 AI Sonar 创建的已完成 World Labs Marble 世界。结果按你的组织隔离；AI Sonar 不会暴露其他账号的数据。
 
 待处理或失败的生成任务请使用 `/v1/worlds/generations/{id}`。此列表只返回生成完成后已被 AI Sonar 索引的世界。
 

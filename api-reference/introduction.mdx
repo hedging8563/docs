@@ -161,35 +161,6 @@ All responses follow a consistent format:
 }
 ```
 
-### Routing Transparency
-
-All responses include a `_routing` field with channel information:
-
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai",
-      "channelType": "PLATFORM"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `channel.id` | Channel identifier used |
-| `channel.provider` | Upstream provider (openai, anthropic, etc.) |
-| `channel.channelType` | `PLATFORM` (AI Sonar) or `PRIVATE` (BYOK) |
-| `cached` | Whether response was served from cache |
-| `retryCount` | Number of retry attempts (if any) |
-
 ### Error Response
 
 ```json

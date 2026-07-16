@@ -78,29 +78,27 @@ AI Sonar 的 Agent-First API 会在错误响应中加入结构化提示，AI Age
 
 `suggestions` 包含比预计费用更低、Agent 可以切换到的模型。
 
-### all_channels_failed (503)
+### 临时服务错误 (5xx)
 
-当某个模型的所有通道都暂时不可用时：
+模型暂时不可用时，仅当响应中的 `retryable` 为 `true` 才重试：
 
 ```json
 {
   "error": {
     "message": "Model claude-opus-4-6 temporarily unavailable",
-    "code": "all_channels_failed",
+    "type": "server_error",
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
       {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
       {"id": "gpt-5-mini", "status": "available", "tags": []}
     ],
-    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
+    "hint": "Retry in 30s or try an alternative model."
   }
 }
 ```
 
-<Note>
-当原因是 `no_channels`（该模型未配置任何通道）时，`retryable` 为 `false`。只有在诸如熔断器触发或配额耗尽等短暂故障情况下，`retryable` 才为 `true`。
-</Note>
+当 `retryable` 为 `false` 时，请根据 `hint` 调整请求或改用 `alternatives` 中的模型。
 
 ### rate_limit_exceeded (429)
 
@@ -120,12 +118,12 @@ AI Sonar 的 Agent-First API 会在错误响应中加入结构化提示，AI Age
 `retry_after` 的值根据实际速率限制窗口重置时间计算。
 
 <Note>
-与 OpenAI 兼容的端点使用 AI Sonar 的稳定公共错误类型，例如 `rate_limit_exceeded`、`upstream_error` 和 `all_channels_failed`。与 Anthropic 兼容和与 Gemini 兼容的端点使用它们各自的原生响应格式。
+OpenAI 兼容端点使用上文所示的标准错误结构；Anthropic 兼容和 Gemini 兼容端点使用各自的原生响应格式。
 </Note>
 
 ### context_length_exceeded (400)
 
-当输入超过模型的上下文窗口（上游错误，附带提示）时：
+当输入超过模型的上下文窗口（附带可操作提示）时：
 
 ```json
 {

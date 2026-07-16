@@ -5,7 +5,7 @@ description: "GPT-4, GPT-4o, o1, o3, DALL-E, Whisper, TTS"
 
 ## Overview
 
-AI Sonar provides access to OpenAI models. Total: **53 models** available.
+AI Sonar provides access to OpenAI models. Total: **51 models** available.
 
 ## Chat Models
 
@@ -29,13 +29,18 @@ AI Sonar provides access to OpenAI models. Total: **53 models** available.
 | `gpt-5.4-pro` | $30/1M in |
 | `gpt-5.5` | $1.5/1M in |
 | `gpt-5.5-pro` | $30/1M in |
+| `gpt-5.6-luna` | $0.1–$9/1M in |
+| `gpt-5.6-sol` | $0.5–$45/1M in |
+| `gpt-5.6-terra` | $0.25–$22.5/1M in |
+| `gpt-audio` | $2.5/1M in |
+| `gpt-audio-1.5` | $2.5/1M in |
+| `gpt-audio-mini` | $0.6/1M in |
 | `gpt-oss-120b` | $0.105/1M in |
 | `gpt-oss-20b` | $0.075/1M in |
 | `gpt-realtime` | $4/1M in |
 | `gpt-realtime-1.5` | $4/1M in |
 | `gpt-realtime-2` | $4/1M in |
 | `gpt-realtime-mini` | $0.6/1M in |
-| `gpt-realtime-translate` | See dashboard |
 | `o1` | $15/1M in |
 | `o1-pro` | $150/1M in |
 | `o3` | $2/1M in |
@@ -57,7 +62,7 @@ AI Sonar provides access to OpenAI models. Total: **53 models** available.
 | `chatgpt-image-latest` | $5/1M in |
 | `gpt-image-1` | $5/1M in |
 | `gpt-image-1-mini` | $1.4/1M in |
-| `gpt-image-1.5` | $3.5/1M in |
+| `gpt-image-1.5` | $0.875–$22.4/1M in |
 | `gpt-image-2` | $1.5/1M in |
 
 ## Text-to-Speech
@@ -75,20 +80,13 @@ AI Sonar provides access to OpenAI models. Total: **53 models** available.
 | `gpt-4o-mini-transcribe` | $1.25/1M in |
 | `gpt-4o-transcribe` | $2.5/1M in |
 | `gpt-4o-transcribe-diarize` | $2.5/1M in |
-| `gpt-realtime-whisper` | See dashboard |
-| `openai-gpt-4o-mini-transcribe` | $0.875/1M in |
-| `openai-gpt-4o-transcribe` | $1.75/1M in |
-| `whisper-1` | See dashboard |
-| `whisper-large-v3` | See dashboard |
-| `whisper-large-v3-turbo` | See dashboard |
+| `whisper-1` | $0.0001/second |
 
-## Audio Utilities
+## Translation
 
 | Model ID | Pricing |
 |----------|--------|
-| `gpt-audio` | $2.5/1M in |
-| `gpt-audio-1.5` | $2.5/1M in |
-| `gpt-audio-mini` | $0.6/1M in |
+| `gpt-realtime-translate` | $0/second |
 
 ## Usage
 
@@ -101,11 +99,11 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-4.1-mini",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
 <Note>
-Prices shown are platform prices (~70% of official rates).
+The table shows the public catalog's current input price when available. See your dashboard for complete input, output, and unit-specific pricing.
 </Note>

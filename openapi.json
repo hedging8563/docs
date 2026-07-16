@@ -109,6 +109,34 @@
                     "stream": true
                   }
                 },
+                "live_translation": {
+                  "summary": "Stream audio translation",
+                  "value": {
+                    "model": "qwen3-livetranslate-flash",
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "input_audio",
+                            "input_audio": {
+                              "data": "https://example.com/sample.wav",
+                              "format": "wav"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "translation_options": {
+                      "source_lang": "zh",
+                      "target_lang": "en"
+                    },
+                    "modalities": [
+                      "text"
+                    ],
+                    "stream": true
+                  }
+                },
                 "function_calling": {
                   "summary": "Function calling",
                   "value": {
@@ -178,10 +206,10 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           },
           "503": {
-            "$ref": "#/components/responses/AllChannelsFailed"
+            "$ref": "#/components/responses/ServiceUnavailable"
           }
         }
       }
@@ -308,7 +336,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       }
@@ -347,6 +375,11 @@
                     "quality": "high"
                   }
                 }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageGenerationMultipartRequest"
               }
             }
           }
@@ -1556,21 +1589,110 @@
           "Models"
         ],
         "summary": "List models",
-        "description": "Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present. Deprecated `lemondata` is still returned as a compatibility alias during the migration.",
+        "description": "Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
         "operationId": "listModels",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "description": "Filter by public model provider, for example openai, anthropic, google, or minimax.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "description": "Filter by a public capability tag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "Filter by model category.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chat",
+                "embedding",
+                "translation",
+                "image",
+                "video",
+                "audio",
+                "tts",
+                "stt",
+                "rerank",
+                "3d",
+                "music"
+              ]
+            }
+          },
+          {
+            "name": "recommended_for",
+            "in": "query",
+            "required": false,
+            "description": "Sort supported non-chat models for a task category and include recommendation evidence.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "image",
+                "video",
+                "music",
+                "3d",
+                "tts",
+                "stt",
+                "embedding",
+                "rerank",
+                "translation"
+              ]
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Choose compact model-selection fields or the full OpenAI-compatible list shape.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "compact",
+                "full"
+              ],
+              "default": "full"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of models",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ModelsResponse"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ModelsResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CompactModelsResponse"
+                    }
+                  ]
                 }
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
@@ -1584,7 +1706,7 @@
           "Models"
         ],
         "summary": "Get model",
-        "description": "Retrieves a model instance, providing basic information about the model.",
+        "description": "Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request.",
         "operationId": "getModel",
         "parameters": [
           {
@@ -1768,7 +1890,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       }
@@ -1818,7 +1940,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       },
@@ -1887,7 +2009,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       }
@@ -1938,7 +2060,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       },
@@ -1987,7 +2109,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       }
@@ -2045,7 +2167,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       }
@@ -2096,7 +2218,7 @@
             "$ref": "#/components/responses/ServerError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/ServiceError"
           }
         }
       }
@@ -2339,7 +2461,7 @@
                     "properties": {
                       "include_obfuscation": {
                         "type": "boolean",
-                        "description": "When true, request obfuscated tokens in Responses stream events from compatible upstreams."
+                        "description": "When true, request obfuscated tokens in Responses stream events from compatible models."
                       }
                     },
                     "additionalProperties": false,
@@ -2603,7 +2725,6 @@
                 "schema": {
                   "type": "object",
                   "required": [
-                    "id",
                     "results",
                     "model"
                   ],
@@ -3574,6 +3695,14 @@
                   "response_format": {
                     "type": "string"
                   },
+                  "background": {
+                    "type": "string",
+                    "enum": [
+                      "transparent",
+                      "opaque",
+                      "auto"
+                    ]
+                  },
                   "output_format": {
                     "type": "string",
                     "enum": [
@@ -3598,6 +3727,14 @@
                       "auto",
                       "low"
                     ]
+                  },
+                  "async": {
+                    "type": "boolean",
+                    "description": "Return a task before the edited image is ready for models that support public async execution."
+                  },
+                  "stream": {
+                    "type": "boolean",
+                    "description": "Reserved image streaming flag. The public edit route currently rejects true."
                   },
                   "user": {
                     "type": "string"
@@ -3749,6 +3886,14 @@
                   "response_format": {
                     "type": "string"
                   },
+                  "background": {
+                    "type": "string",
+                    "enum": [
+                      "transparent",
+                      "opaque",
+                      "auto"
+                    ]
+                  },
                   "output_format": {
                     "type": "string",
                     "enum": [
@@ -3773,6 +3918,12 @@
                       "auto",
                       "low"
                     ]
+                  },
+                  "async": {
+                    "type": "boolean"
+                  },
+                  "stream": {
+                    "type": "boolean"
                   },
                   "user": {
                     "type": "string"
@@ -5955,7 +6106,7 @@
           },
           "top_k": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": 0,
             "description": "Top-k sampling cutoff for compatible providers."
           },
           "logit_bias": {
@@ -5976,6 +6127,35 @@
             "type": "object",
             "additionalProperties": true,
             "description": "Audio output configuration when requesting audio modality."
+          },
+          "translation_options": {
+            "type": "object",
+            "required": [
+              "target_lang"
+            ],
+            "properties": {
+              "source_lang": {
+                "type": "string",
+                "description": "Source language code. Omit when the model supports automatic detection."
+              },
+              "target_lang": {
+                "type": "string",
+                "description": "Target language code."
+              }
+            },
+            "description": "Language settings for models that translate audio or video through Chat Completions."
+          },
+          "speech_rate": {
+            "type": "number",
+            "minimum": 0.5,
+            "maximum": 2,
+            "description": "Speech rate for compatible translated audio output."
+          },
+          "repetition_penalty": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Repetition penalty for compatible models."
           },
           "prediction": {
             "type": "object",
@@ -6068,6 +6248,62 @@
                       "required": [
                         "type",
                         "image_url"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "video_url"
+                          ]
+                        },
+                        "video_url": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "video_url"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "input_audio"
+                          ]
+                        },
+                        "input_audio": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "string",
+                              "description": "Public audio URL or Base64 data URL."
+                            },
+                            "format": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "data"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "input_audio"
                       ]
                     }
                   ]
@@ -6452,6 +6688,45 @@
             "type": "string",
             "description": "Model to use. Send this explicitly; query GET /v1/models?recommended_for=image for current recommendations."
           },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "text-to-image",
+              "image-to-image",
+              "image-edit"
+            ],
+            "description": "Public image operation family. Reference-image models use image-to-image with image_url, image_urls, or reference_image_urls."
+          },
+          "image_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Single reference image URL for compatible image-to-image models."
+          },
+          "image_urls": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Reference image URLs for compatible image-to-image models."
+          },
+          "reference_image_urls": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Alias used by compatible reference-image model families."
+          },
+          "mask_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional mask URL for compatible image operations."
+          },
           "n": {
             "type": "integer",
             "minimum": 1,
@@ -6461,21 +6736,11 @@
           },
           "size": {
             "type": "string",
-            "default": "1024x1024",
-            "description": "Image size. For gpt-image-2, use auto or WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
+            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
           },
           "quality": {
             "type": "string",
-            "enum": [
-              "standard",
-              "hd",
-              "auto",
-              "low",
-              "medium",
-              "high"
-            ],
-            "default": "standard",
-            "description": "Image quality. GPT Image models such as gpt-image-2 use auto/low/medium/high. Other image families may use provider-specific values."
+            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other image families may use provider-specific values."
           },
           "style": {
             "type": "string",
@@ -6485,6 +6750,18 @@
             ],
             "description": "Optional model-specific style selector. Only send when the selected model documents support for this parameter."
           },
+          "expand_prompt": {
+            "type": "boolean",
+            "description": "Ask compatible models to expand or enhance the prompt."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "description": "Content to avoid for compatible image models."
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Seed for deterministic-compatible image models."
+          },
           "response_format": {
             "type": "string",
             "enum": [
@@ -6493,6 +6770,10 @@
             ],
             "default": "url",
             "description": "Response format"
+          },
+          "async": {
+            "type": "boolean",
+            "description": "Return a task before the final image is ready when the selected model supports public async execution."
           },
           "background": {
             "type": "string",
@@ -6532,11 +6813,146 @@
             ],
             "description": "Moderation strictness for compatible image models such as gpt-image-2"
           },
+          "stream": {
+            "type": "boolean",
+            "description": "Reserved image streaming flag. The public generation route currently rejects true."
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "description": "Aspect-ratio selector for compatible image model families."
+          },
+          "resolution": {
+            "type": "string",
+            "description": "Resolution selector for compatible image model families."
+          },
           "user": {
             "type": "string",
             "description": "End-user identifier"
           }
         }
+      },
+      "ImageGenerationMultipartRequest": {
+        "type": "object",
+        "required": [
+          "model",
+          "prompt"
+        ],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model to use. Send this explicitly."
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 4000,
+            "description": "Image description"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "text-to-image",
+              "image-to-image",
+              "image-edit"
+            ]
+          },
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "Local reference image upload for compatible image-to-image models."
+          },
+          "image_urls": {
+            "type": "string",
+            "description": "Comma-separated reference image URLs."
+          },
+          "reference_image_urls": {
+            "type": "string",
+            "description": "Comma-separated reference image URLs for compatible model families."
+          },
+          "mask_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 1
+          },
+          "quality": {
+            "type": "string"
+          },
+          "expand_prompt": {
+            "type": "boolean"
+          },
+          "negative_prompt": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "url",
+              "b64_json"
+            ]
+          },
+          "async": {
+            "type": "boolean"
+          },
+          "background": {
+            "type": "string",
+            "enum": [
+              "transparent",
+              "opaque",
+              "auto"
+            ]
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg",
+              "webp"
+            ]
+          },
+          "output_compression": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "compression": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "moderation": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "low"
+            ]
+          },
+          "stream": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "string"
+          },
+          "aspect_ratio": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       },
       "ImageGenerationResponse": {
         "type": "object",
@@ -6929,7 +7345,7 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds, and grok-imagine-video-1.5-preview does not accept reference images. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
@@ -7488,7 +7904,180 @@
         "required": [
           "object",
           "data"
-        ]
+        ],
+        "additionalProperties": false
+      },
+      "CompactModelsResponse": {
+        "type": "object",
+        "description": "Compact model-selection response used by AI Sonar MCP and other agent integrations.",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "compact"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompactModelListItem"
+            }
+          }
+        },
+        "required": [
+          "object",
+          "view",
+          "count",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CompactModelListItem": {
+        "type": "object",
+        "description": "Fields needed to shortlist a model before calling get_model or get_model_pricing.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Model identifier"
+          },
+          "provider": {
+            "type": "string",
+            "description": "Public model provider"
+          },
+          "category": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_input_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "max_output_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pricing": {
+            "type": "object",
+            "properties": {
+              "unit": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "USD"
+                ]
+              },
+              "input_per_1m": {
+                "type": "string"
+              },
+              "output_per_1m": {
+                "type": "string"
+              },
+              "per_request": {
+                "type": "string"
+              },
+              "min_price": {
+                "type": "string",
+                "description": "Minimum AI Sonar price for a structured pricing model."
+              },
+              "max_price": {
+                "type": "string",
+                "description": "Maximum AI Sonar price for a structured pricing model."
+              },
+              "has_complex_pricing": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "unit",
+              "currency",
+              "has_complex_pricing"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "description": "Public model lifecycle stage."
+          },
+          "latest": {
+            "type": "boolean"
+          },
+          "supported_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "request_endpoint": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "object",
+            "properties": {
+              "preferred_rank": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "success_rate_24h": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "sample_count_24h": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "insufficient_samples"
+                ]
+              }
+            },
+            "required": [
+              "preferred_rank",
+              "success_rate_24h",
+              "sample_count_24h",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "category",
+          "capabilities",
+          "max_input_tokens",
+          "max_output_tokens",
+          "pricing",
+          "status",
+          "latest"
+        ],
+        "additionalProperties": false
       },
       "Model": {
         "type": "object",
@@ -7515,15 +8104,6 @@
           },
           "aisonar": {
             "$ref": "#/components/schemas/ModelPlatformExtension"
-          },
-          "lemondata": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ModelLegacyPlatformExtension"
-              }
-            ],
-            "deprecated": true,
-            "description": "Deprecated alias for aisonar. Retained for compatibility during the AI Sonar migration."
           }
         },
         "required": [
@@ -7550,30 +8130,7 @@
               },
               "type": {
                 "type": "string",
-                "description": "Error type",
-                "enum": [
-                  "unauthorized",
-                  "invalid_api_key",
-                  "expired_api_key",
-                  "insufficient_balance",
-                  "quota_exceeded",
-                  "invalid_request_error",
-                  "model_not_found",
-                  "context_length_exceeded",
-                  "unsupported_tool_choice",
-                  "rate_limit_exceeded",
-                  "server_error",
-                  "upstream_error",
-                  "all_channels_failed",
-                  "timeout_error",
-                  "not_found_error",
-                  "no_contract_compatible_route",
-                  "request_shape_channel_mismatch",
-                  "upstream_contract_mismatch",
-                  "platform_normalization_error",
-                  "async_task_not_found",
-                  "async_task_mapping_invalid"
-                ]
+                "description": "Error type"
               },
               "code": {
                 "type": "string",
@@ -7992,7 +8549,7 @@
                 "parts": {
                   "type": "array",
                   "items": {
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "object",
                         "properties": {
@@ -8276,7 +8833,7 @@
           },
           "tools": {
             "type": "array",
-            "description": "Gemini tools. Supported tool combinations depend on the selected model and route; unsupported native image-output tool combinations are rejected before upstream retries.",
+            "description": "Gemini tools. Supported tool combinations depend on the selected model and route; unsupported native image-output tool combinations are rejected before processing.",
             "items": {
               "type": "object",
               "properties": {
@@ -8467,15 +9024,6 @@
             "description": "Model provider",
             "example": "openai"
           },
-          "lemondata": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ModelListLegacyPlatformExtension"
-              }
-            ],
-            "deprecated": true,
-            "description": "Deprecated alias for aisonar. Retained for compatibility during the AI Sonar migration."
-          },
           "aisonar": {
             "$ref": "#/components/schemas/ModelListPlatformExtension"
           }
@@ -8591,7 +9139,7 @@
             "example": 1741425600
           }
         },
-        "description": "File metadata. Batch files include status; image/reference files may omit status depending on the upstream file provider."
+        "description": "File metadata. Batch files include status; image/reference files may omit status depending on the file type."
       },
       "FileListResponse": {
         "type": "object",
@@ -9274,7 +9822,7 @@
           "request_counts": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Upstream request count summary for the batch"
+            "description": "Request count summary for the batch"
           },
           "ended_at": {
             "type": "string",
@@ -9292,7 +9840,7 @@
           "results_url": {
             "type": "string",
             "nullable": true,
-            "description": "Upstream results URL, when available"
+            "description": "Results URL, when available"
           }
         },
         "additionalProperties": true
@@ -9636,17 +10184,29 @@
         },
         "additionalProperties": false
       },
-      "NonChatRequestFormatSummary": {
-        "type": [
-          "object",
-          "null"
-        ],
+      "NonChatOperationConstraint": {
+        "type": "object",
         "properties": {
-          "public_operations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "operation": {
+            "type": "string"
+          },
+          "request_endpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_shape_mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status_mode": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "supported_parameters": {
             "type": "array",
@@ -9666,11 +10226,128 @@
               "type": "string"
             }
           },
+          "documented_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_resolutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_durations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_aspect_ratios": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "NonChatRequestFormatSummary": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "public_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supported_parameters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "feature_flags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "output_formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "service_limits": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "online_rpm": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "concurrency": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "offline_inference": {
+                "type": "boolean"
+              },
+              "offline_tpd": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "prompt_max_characters": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "required_selectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional_selectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "resolutions": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "resolutions_label": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "durations": {
             "type": "array",
@@ -9678,11 +10355,23 @@
               "type": "string"
             }
           },
+          "durations_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "aspect_ratios": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "aspect_ratios_label": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "request_endpoint": {
             "type": [
@@ -9691,6 +10380,12 @@
             ]
           },
           "status_mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_shape_mode": {
             "type": [
               "string",
               "null"
@@ -9710,6 +10405,12 @@
                 "string",
                 "null"
               ]
+            }
+          },
+          "operation_constraints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NonChatOperationConstraint"
             }
           }
         },
@@ -10472,170 +11173,6 @@
         },
         "additionalProperties": false
       },
-      "ModelListLegacyPlatformExtension": {
-        "type": "object",
-        "description": "AI Sonar discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full model details, and empty recommendation snapshots are omitted.",
-        "properties": {
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "max_input_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "max_output_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "category": {
-            "type": "string"
-          },
-          "pricing_unit": {
-            "type": "string"
-          },
-          "cache_pricing": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "has_complex_pricing": {
-            "type": "boolean"
-          },
-          "pricing_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "agent_preferences": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "request_format_summary": {
-            "$ref": "#/components/schemas/ModelListRequestFormatSummary"
-          }
-        },
-        "required": [
-          "aliases",
-          "pricing",
-          "capabilities",
-          "max_input_tokens",
-          "max_output_tokens",
-          "category",
-          "pricing_unit",
-          "has_complex_pricing"
-        ],
-        "additionalProperties": false
-      },
-      "ModelLegacyPlatformExtension": {
-        "type": "object",
-        "description": "AI Sonar extension fields for the detail route, including pricing, capabilities, recommendation metadata, and detailed non-chat request metadata.",
-        "properties": {
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "max_input_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "max_output_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "category": {
-            "type": "string"
-          },
-          "pricing_unit": {
-            "type": "string"
-          },
-          "cache_pricing": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "has_complex_pricing": {
-            "type": "boolean"
-          },
-          "supported_operations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "pricing_provenance": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "request_format_summary": {
-            "$ref": "#/components/schemas/NonChatRequestFormatSummary"
-          },
-          "request_format_details": {
-            "$ref": "#/components/schemas/NonChatRequestFormatDetails"
-          }
-        },
-        "additionalProperties": true
-      },
       "ModelListPlatformExtension": {
         "type": "object",
         "description": "AI Sonar discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full model details, and empty recommendation snapshots are omitted.",
@@ -11299,38 +11836,6 @@
           }
         }
       },
-      "UpstreamError": {
-        "description": "Upstream Provider Error",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ApiError"
-            },
-            "example": {
-              "error": {
-                "message": "Upstream provider returned an error",
-                "type": "upstream_error"
-              }
-            }
-          }
-        }
-      },
-      "AllChannelsFailed": {
-        "description": "All Channels Failed",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ApiError"
-            },
-            "example": {
-              "error": {
-                "message": "All available channels failed to process the request",
-                "type": "all_channels_failed"
-              }
-            }
-          }
-        }
-      },
       "Forbidden": {
         "description": "Forbidden",
         "content": {
@@ -11375,6 +11880,38 @@
                 "message": "Seedance material library request failed",
                 "type": "server_error",
                 "code": "seedance_material_library_request_failed"
+              }
+            }
+          }
+        }
+      },
+      "ServiceError": {
+        "description": "Service Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "error": {
+                "message": "The service could not process the request",
+                "type": "server_error"
+              }
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "Service Temporarily Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "error": {
+                "message": "The service is temporarily unavailable. Please try again later.",
+                "type": "server_error"
               }
             }
           }

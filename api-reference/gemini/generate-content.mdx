@@ -41,7 +41,7 @@ Gemini endpoints support multiple authentication methods:
   For production integrations, prefer URL-based `fileData` / `file_data` media parts with a public `https` URL.
   AI Sonar uses the native Gemini path when available and switches to a compatible public path when native handling is unavailable for that multimodal request.
 
-  Role values `user` and `model` are normalized case-insensitively. `inlineData` / `inline_data` with `application/octet-stream` is accepted only when AI Sonar can identify supported image or video bytes; otherwise the request fails before routing. For native image-output requests, only the Google search/maps tool family is accepted, and unsupported tool combinations fail before upstream retries.
+  Role values `user` and `model` are normalized case-insensitively. `inlineData` / `inline_data` with `application/octet-stream` is accepted only when AI Sonar can identify supported image or video bytes; otherwise the request fails before routing. For native image-output requests, only the Google search/maps tool family is accepted, and unsupported tool combinations fail before processing.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">

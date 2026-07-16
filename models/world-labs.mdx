@@ -1,0 +1,36 @@
+---
+title: "World Labs"
+description: "Marble 3D world generation models"
+---
+
+## Overview
+
+AI Sonar provides access to World Labs models. Total: **3 models** available.
+
+## Chat Models
+
+| Model ID | Pricing |
+|----------|--------|
+| `marble-1.0` | See dashboard |
+| `marble-1.1` | See dashboard |
+| `marble-1.1-plus` | See dashboard |
+
+## Usage
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.aisonar.dev/v1"
+)
+
+response = client.chat.completions.create(
+    model="marble-1.0",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+<Note>
+The table shows the public catalog's current input price when available. See your dashboard for complete input, output, and unit-specific pricing.
+</Note>

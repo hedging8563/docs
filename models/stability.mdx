@@ -11,35 +11,23 @@ AI Sonar provides access to Stability AI models. Total: **12 models** available.
 
 | Model ID | Pricing |
 |----------|--------|
-| `sd3.5-flash` | See dashboard |
-| `sd3.5-large` | See dashboard |
-| `sd3.5-large-turbo` | See dashboard |
-| `sd3.5-medium` | See dashboard |
-| `stability-control-sketch` | See dashboard |
-| `stability-control-structure` | See dashboard |
-| `stability-inpaint` | See dashboard |
-| `stability-style-guide` | See dashboard |
-| `stability-upscale-conservative` | See dashboard |
-| `stability-upscale-fast` | See dashboard |
-| `stable-image-core` | See dashboard |
-| `stable-image-ultra` | See dashboard |
+| `sd3.5-flash` | $0.025/image |
+| `sd3.5-large` | $0.065/image |
+| `sd3.5-large-turbo` | $0.04/image |
+| `sd3.5-medium` | $0.035/image |
+| `stability-control-sketch` | $0.05/image |
+| `stability-control-structure` | $0.05/image |
+| `stability-inpaint` | $0.05/image |
+| `stability-style-guide` | $0.05/image |
+| `stability-upscale-conservative` | $0.4/image |
+| `stability-upscale-fast` | $0.02/image |
+| `stable-image-core` | $0.03/image |
+| `stable-image-ultra` | $0.08/image |
 
 ## Usage
 
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.aisonar.dev/v1"
-)
-
-response = client.chat.completions.create(
-    model="sd3.5-flash",
-    messages=[{"role": "user", "content": "Hello!"}]
-)
-```
+Use the model ID with its matching endpoint. See the [API Reference](/api-reference/introduction) for request formats and examples.
 
 <Note>
-Prices shown are platform prices (~70% of official rates).
+The table shows the public catalog's current input price when available. See your dashboard for complete input, output, and unit-specific pricing.
 </Note>

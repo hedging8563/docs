@@ -3,7 +3,7 @@ title: "Async Jobs & Polling"
 description: "Create asynchronous media jobs, poll public AI Sonar task status, and reconcile final results without provider-specific IDs."
 ---
 
-Many media endpoints are asynchronous. A create request starts work and returns a public AI Sonar task identity; your application polls until that task reaches a terminal status. Do not build customer workflows around upstream task URLs, routing IDs, or provider callback behavior.
+Many media endpoints are asynchronous. A create request starts work and returns a public AI Sonar task identity; your application polls until that task reaches a terminal status. Build customer workflows only around the documented task ID and status fields.
 
 ## Public Task Contract
 
@@ -83,7 +83,7 @@ Unsupported tasks return `400 unsupported_task_cancel`. Tasks that are already r
 |---------|--------------|---------------|
 | `async_task_not_found` | Task is unknown, expired, inaccessible to this API key, or not a public async task | Confirm API key ownership and the stored public `task_id` |
 | Task never appears to finish | Client keeps polling the wrong URL or stopped before terminal status | Use `poll_url` or `/v1/tasks/{id}` and inspect the latest status |
-| Final media URL missing | Task is not completed, or the upstream job completed without usable output | Keep polling until terminal, then handle missing output as failed |
+| Final media URL missing | Task is not completed, or the job completed without usable output | Keep polling until terminal, then handle missing output as failed |
 | User sees duplicates | Retry path created a new task after timeout or refresh | Deduplicate by your own job ID and stored `task_id` |
 | Billing mismatch | Settlement is async or client is comparing provider IDs | Compare `request_id`, `task_id`, and `billing_transaction_id` |
 
