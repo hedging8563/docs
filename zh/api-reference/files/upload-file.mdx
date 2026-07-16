@@ -57,7 +57,7 @@ curl -X POST "https://api.aisonar.dev/v1/files" \
 
 - 添加 `anthropic-beta: files-api-2025-04-14` 请求头以切换到 Anthropic 模式。
 - 在 Anthropic 模式下，直接上传原始文件，不要传 `purpose=batch`。
-- 返回的 `file_id` 会绑定到同一个官方 Anthropic 渠道/工作区，后续应在 `/v1/messages` 请求中复用。
+- 返回的 `file_id` 仅限创建它的 API Key 使用，后续可在 `/v1/messages` 请求中复用。
 - 如果你要在 Anthropic 消息内容中引用该文件，请继续使用 Anthropic 原生请求头（`x-api-key`、`anthropic-version`，以及需要时的 beta header）。
 
 ## 响应示例
