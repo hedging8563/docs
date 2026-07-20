@@ -5,20 +5,15 @@ description: "Doubao, Jimeng, Seedream, Seedance"
 
 ## Overview
 
-AI Sonar provides access to ByteDance (Doubao) models. Total: **31 models** available.
+AI Sonar provides access to ByteDance (Doubao) models. Total: **24 models** available.
 
 ## Chat Models
 
 | Model ID | Pricing |
 |----------|--------|
-| `doubao-1.5-lite-32k` | Input $0.04411765 / Output $0.08823529 per 1M tokens |
 | `doubao-1.5-pro-32k` | Input $0.11764706 / Output $0.29411765 per 1M tokens |
-| `doubao-1.5-pro-32k-character` | Input $0.117647058824 / Output $0.294117647059 per 1M tokens |
-| `doubao-1.5-vision-pro` | Input $0.44117647 / Output $1.32352941 per 1M tokens |
 | `doubao-seed-1.6` | Input $0.17647059 / Output $1.17647059 per 1M tokens |
 | `doubao-seed-1.6-flash` | Input $0.04411765 / Output $0.29411765 per 1M tokens |
-| `doubao-seed-1.6-vision` | Input $0.11764706 / Output $1.17647059 per 1M tokens |
-| `doubao-seed-1.8` | Input $0.11764706 / Output $1.17647059 per 1M tokens |
 | `doubao-seed-2.0-code` | $0.002647058824–$7.058823529412/1M tokens |
 | `doubao-seed-2.0-lite` | $0.002647058824–$3.970588235294/1M tokens |
 | `doubao-seed-2.0-mini` | $0.002647058824–$1.764705882353/1M tokens |
@@ -26,7 +21,6 @@ AI Sonar provides access to ByteDance (Doubao) models. Total: **31 models** avai
 | `doubao-seed-2.1-pro` | Input $0.882352941176 / Output $4.411764705882 per 1M tokens |
 | `doubao-seed-2.1-turbo` | Input $0.441176470588 / Output $2.205882352941 per 1M tokens |
 | `doubao-seed-character` | $0.002647058824–$0.882352941176/1M tokens |
-| `doubao-seed-code` | Input $0.17647059 / Output $1.17647059 per 1M tokens |
 | `doubao-seed-evolving` | Input $0.882352941176 / Output $4.411764705882 per 1M tokens |
 
 ## Image Generation
@@ -35,10 +29,9 @@ AI Sonar provides access to ByteDance (Doubao) models. Total: **31 models** avai
 |----------|--------|
 | `seedream-4.0` | $0.029411764706/image |
 | `seedream-4.5` | $0.036764705882/image |
-| `seedream-5-lite-image-to-image` | $0.0275/image |
-| `seedream-5-lite-text-to-image` | $0.0275/image |
 | `seedream-5.0` | $0.036764705882/image |
 | `seedream-5.0-lite` | $0.032352941176/image |
+| `seedream-5.0-pro` | See dashboard |
 
 ## Video Generation
 
@@ -47,7 +40,7 @@ AI Sonar provides access to ByteDance (Doubao) models. Total: **31 models** avai
 | `seedance-1.0-pro` | Output $2.20588235/1M tokens |
 | `seedance-1.0-pro-fast` | Output $0.61764706/1M tokens |
 | `seedance-1.5-pro` | $1.176470585294–$2.352941180882/1M tokens |
-| `seedance-2.0` | $2.235294117647–$7.125/1M tokens |
+| `seedance-2.0` | $2–$6.375/1M tokens |
 | `seedance-2.0-fast` | $3.235294117647–$5.441176470588/1M tokens |
 | `seedance-2.0-mini` | $2.058823529412–$3.382352941176/1M tokens |
 
@@ -63,7 +56,6 @@ AI Sonar provides access to ByteDance (Doubao) models. Total: **31 models** avai
 |----------|--------|
 | `seed3d-2.0` | $0.352941176471/request |
 
-
 ## Usage
 
 ```python
@@ -75,7 +67,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="doubao-1.5-lite-32k",
+    model="doubao-1.5-pro-32k",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```

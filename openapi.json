@@ -749,7 +749,7 @@
                     "code": "seedance_material_preparing",
                     "param": "material_asset_id",
                     "auto_material_asset_ids": [
-                      "seedance_asset_auto123"
+                      "asset-20260720123456-auto1"
                     ]
                   }
                 }
@@ -837,7 +837,7 @@
                     "asset_name": "Front view",
                     "asset_type": "Image",
                     "library_type": "aigc_avatar",
-                    "group_id": "seedance_group_virtual_123"
+                    "group_id": "group-20260720123456-vrt01"
                   }
                 },
                 "real_person_asset": {
@@ -847,7 +847,7 @@
                     "asset_name": "Creator A close-up",
                     "asset_type": "Image",
                     "library_type": "liveness_face",
-                    "group_id": "seedance_group_real_123"
+                    "group_id": "group-20260720123456-real1"
                   }
                 }
               }
@@ -866,9 +866,9 @@
                   "asset_created": {
                     "summary": "Material asset accepted for processing",
                     "value": {
-                      "id": "seedance_asset_123",
+                      "id": "asset-20260720123456-qn7wr",
                       "object": "seedance.material_asset",
-                      "group_id": "seedance_group_virtual_123",
+                      "group_id": "group-20260720123456-vrt01",
                       "library_type": "aigc_avatar",
                       "asset_name": "Front view",
                       "asset_type": "Image",
@@ -985,9 +985,9 @@
                     "value": {
                       "assets": [
                         {
-                          "id": "seedance_asset_123",
+                          "id": "asset-20260720123456-qn7wr",
                           "object": "seedance.material_asset",
-                          "group_id": "seedance_group_virtual_123",
+                          "group_id": "group-20260720123456-vrt01",
                           "library_type": "aigc_avatar",
                           "asset_name": "Front view",
                           "asset_type": "Image",
@@ -1133,7 +1133,7 @@
                           "status": "bound",
                           "verification_status": "succeeded",
                           "result_code": "10000",
-                          "group_id": "seedance_group_real_123",
+                          "group_id": "group-20260720123456-real1",
                           "group_name": "Creator A",
                           "error_message": null,
                           "created_at": 1782998400000,
@@ -1205,9 +1205,9 @@
                     "summary": "Real-person material group bound",
                     "value": {
                       "object": "seedance.visual_validation_result",
-                      "group_id": "seedance_group_real_123",
+                      "group_id": "group-20260720123456-real1",
                       "material_group": {
-                        "id": "seedance_group_real_123",
+                        "id": "group-20260720123456-real1",
                         "library_type": "liveness_face",
                         "status": "ACTIVE",
                         "group_name": "Creator A"
@@ -1259,7 +1259,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "seedance_asset_123"
+            "example": "asset-20260720123456-qn7wr"
           }
         ],
         "responses": {
@@ -1274,9 +1274,9 @@
                   "asset": {
                     "summary": "Material asset",
                     "value": {
-                      "id": "seedance_asset_123",
+                      "id": "asset-20260720123456-qn7wr",
                       "object": "seedance.material_asset",
-                      "group_id": "seedance_group_virtual_123",
+                      "group_id": "group-20260720123456-vrt01",
                       "library_type": "aigc_avatar",
                       "asset_name": "Front view",
                       "asset_type": "Image",
@@ -1321,7 +1321,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "seedance_asset_123"
+            "example": "asset-20260720123456-qn7wr"
           }
         ],
         "requestBody": {
@@ -1357,9 +1357,9 @@
                   "asset_updated": {
                     "summary": "Material asset updated",
                     "value": {
-                      "id": "seedance_asset_123",
+                      "id": "asset-20260720123456-qn7wr",
                       "object": "seedance.material_asset",
-                      "group_id": "seedance_group_virtual_123",
+                      "group_id": "group-20260720123456-vrt01",
                       "library_type": "aigc_avatar",
                       "asset_name": "Front view approved",
                       "asset_type": "Image",
@@ -1410,7 +1410,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "seedance_asset_123"
+            "example": "asset-20260720123456-qn7wr"
           }
         ],
         "responses": {
@@ -1426,7 +1426,7 @@
                     "summary": "Material asset deleted",
                     "value": {
                       "deleted": true,
-                      "id": "seedance_asset_123"
+                      "id": "asset-20260720123456-qn7wr"
                     }
                   }
                 }
@@ -5083,7 +5083,7 @@
                   "group_created": {
                     "summary": "Material group created",
                     "value": {
-                      "id": "seedance_group_virtual_123",
+                      "id": "group-20260720123456-vrt01",
                       "object": "seedance.material_asset_group",
                       "library_type": "aigc_avatar",
                       "group_name": "Product references",
@@ -5188,7 +5188,7 @@
                     "value": {
                       "groups": [
                         {
-                          "id": "seedance_group_virtual_123",
+                          "id": "group-20260720123456-vrt01",
                           "object": "seedance.material_asset_group",
                           "library_type": "aigc_avatar",
                           "group_name": "Product references",
@@ -5198,7 +5198,7 @@
                           "created_at": 1782998400000
                         },
                         {
-                          "id": "seedance_group_real_123",
+                          "id": "group-20260720123456-real1",
                           "object": "seedance.material_asset_group",
                           "library_type": "liveness_face",
                           "group_name": "Creator A",
@@ -5243,7 +5243,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "seedance_group_virtual_123"
+            "example": "group-20260720123456-vrt01"
           }
         ],
         "responses": {
@@ -5258,7 +5258,7 @@
                   "group": {
                     "summary": "Material group",
                     "value": {
-                      "id": "seedance_group_virtual_123",
+                      "id": "group-20260720123456-vrt01",
                       "object": "seedance.material_asset_group",
                       "library_type": "aigc_avatar",
                       "group_name": "Product references",
@@ -5301,7 +5301,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "seedance_group_virtual_123"
+            "example": "group-20260720123456-vrt01"
           }
         ],
         "requestBody": {
@@ -5335,7 +5335,7 @@
                   "group_updated": {
                     "summary": "Material group updated",
                     "value": {
-                      "id": "seedance_group_virtual_123",
+                      "id": "group-20260720123456-vrt01",
                       "object": "seedance.material_asset_group",
                       "library_type": "aigc_avatar",
                       "group_name": "Updated references",
@@ -5381,7 +5381,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "seedance_group_virtual_123"
+            "example": "group-20260720123456-vrt01"
           }
         ],
         "responses": {
@@ -5397,7 +5397,7 @@
                     "summary": "Material group deleted",
                     "value": {
                       "deleted": true,
-                      "id": "seedance_group_virtual_123"
+                      "id": "group-20260720123456-vrt01"
                     }
                   }
                 }
@@ -6782,7 +6782,7 @@
               "opaque",
               "auto"
             ],
-            "description": "Background handling for compatible image generation flows such as gpt-image-2 text-to-image. Not supported for gpt-image-2 image edits."
+            "description": "Background handling for compatible image flows. For gpt-image-2 generation and edits, accepted values are auto and opaque; transparent is not supported. Other models may support different values."
           },
           "output_format": {
             "type": "string",
@@ -7215,7 +7215,7 @@
           "image_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable image URL for image-to-video generation. Preferred over inline base64 in production. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares this image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
+            "description": "Publicly reachable image URL for image-to-video generation, or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE AI Sonar Seedance material used as the first frame. Preferred over inline base64 in production. AI Sonar verifies material ownership. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares ordinary image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
           },
           "video_url": {
             "type": "string",
@@ -7285,11 +7285,11 @@
           },
           "start_image": {
             "type": "string",
-            "description": "First frame image input for start-end-to-video flows. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares this image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
+            "description": "First frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE AI Sonar material owned by the requesting organization. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares ordinary image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
           },
           "end_image": {
             "type": "string",
-            "description": "Last frame image input for start-end-to-video flows. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares this image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
+            "description": "Last frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE AI Sonar material owned by the requesting organization. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares ordinary image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
           },
           "user": {
             "type": "string",
@@ -7345,7 +7345,7 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs, compatible data URLs, or for Seedance, asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE AI Sonar materials owned by the requesting organization; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the AI Sonar material library, AI Sonar prepares ordinary image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
@@ -7354,7 +7354,7 @@
           },
           "material_asset_id": {
             "type": "string",
-            "description": "AI Sonar Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or by a real-person verification bind flow. Use it after the asset is ACTIVE with Seedance models that can use the AI Sonar material library. The asset must belong to the current account."
+            "description": "AI Sonar Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or by a real-person verification bind flow. Use it after the asset is ACTIVE with Seedance models that can use the AI Sonar material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
           },
           "material_asset_ids": {
             "type": "array",
@@ -10786,7 +10786,7 @@
                 "additionalProperties": true
               }
             ],
-            "description": "Image URL. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience."
+            "description": "Image reference. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience. AI Sonar also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE materials owned by the requesting organization, and preserves the item's first_frame, last_frame, or reference_image role."
           },
           "video_url": {
             "oneOf": [
@@ -10873,6 +10873,12 @@
             "items": {
               "$ref": "#/components/schemas/VolcSeedanceContentItem"
             }
+          },
+          "material_asset_id": {
+            "type": "string",
+            "pattern": "^asset-\\d{14}-[a-z0-9]{5}$",
+            "maxLength": 128,
+            "description": "AI Sonar compatibility shorthand for one ACTIVE Seedance material owned by the requesting organization. It is treated as the first frame and cannot be combined with other media inputs. For multiple materials, use content image_url items with explicit roles; top-level material_asset_ids is rejected as ambiguous."
           },
           "ratio": {
             "type": "string",
