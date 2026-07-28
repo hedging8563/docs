@@ -34,7 +34,7 @@ It also includes `lifecycle`, `commercial`, and `badges`, which describe depreca
 </ResponseField>
 
 <ResponseField name="aisonar" type="object">
-  AI Sonar-specific public metadata. The detail route can include `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, the full `request_format_details`, and scene-level `agent_preferences` for non-chat recommendation snapshots.
+  AI Sonar-specific public metadata. The detail route includes logical protocol availability in `accepted_request_formats` and can include `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, the full `request_format_details`, and scene-level `agent_preferences` for non-chat recommendation snapshots.
 </ResponseField>
 
 <RequestExample>
@@ -156,3 +156,4 @@ Compared with `GET /v1/models`, the detail route can additionally return:
 - `aisonar.pricing_provenance`
 - `aisonar.request_format_summary`
 - `aisonar.request_format_details`
+- `aisonar.accepted_request_formats`

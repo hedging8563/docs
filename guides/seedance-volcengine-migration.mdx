@@ -1,0 +1,100 @@
+---
+title: "Migrate Seedance from Volcengine"
+description: "Move Volcengine-style Seedance task and material integrations to AI Sonar with minimal request changes."
+---
+
+Use this guide when your application already sends Volcengine-style Seedance requests. Task APIs retain the official REST paths, `content[]` body, response fields, error envelope, and callback lifecycle. Material and real-person validation APIs continue to use their PascalCase Action contracts. The required migration is the host and authentication credential.
+
+## What Changes
+
+| Concern | Existing Volcengine client | AI Sonar |
+|---------|----------------------------|----------|
+| Base URL | Your Volcengine endpoint | `https://api.aisonar.dev/` |
+| Authentication | AK/SK request signing | `Authorization: Bearer <API_KEY>` |
+| Task transport | Official `/api/v3/contents/generations/tasks` REST paths | Preserved |
+| Material/validation Actions | `Action` and `Version` query parameters | Preserved |
+| Task body | Volcengine-style `content[]` | Preserved |
+| Material body | PascalCase fields such as `GroupId` and `ProjectName` | Preserved |
+| Async result | Provider task lifecycle | AI Sonar `cgt-...` task ID with polling and optional callback |
+
+AK/SK signing is the only intentional wire-level difference. A request that contains only an AK/SK signature returns the official four-field error envelope with `401 AuthenticationError` and a Bearer-authentication message.
+
+## Choose A Request Shape
+
+| Existing client | AI Sonar endpoint |
+|-----------------|-------------------|
+| Volcengine REST task client | `/api/v3/contents/generations/tasks` and its task paths |
+| Material or validation Action client | `POST /?Action=...&Version=2024-01-01` or `POST /api/v3?Action=...&Version=2024-01-01` |
+
+For task generation, replace the host and credential while keeping the official REST method, path, and JSON shape. Action aliases for task operations remain a legacy AI Sonar compatibility surface and are not part of the one-to-one official task contract.
+
+## Official Task Paths
+
+| Method and path | Purpose |
+|-----------------|---------|
+| `POST /api/v3/contents/generations/tasks` | Create a video task |
+| `GET /api/v3/contents/generations/tasks/{id}` | Read one task |
+| `GET /api/v3/contents/generations/tasks` | List tasks |
+| `DELETE /api/v3/contents/generations/tasks/{id}` | Cancel or delete a task |
+
+REST clients can use these equivalent references:
+
+- [Create Task (Volc Compatible)](/api-reference/video/create-volc-compatible-seedance-task)
+- [Get Task (Volc Compatible)](/api-reference/video/get-volc-compatible-seedance-task)
+- [List Tasks (Volc Compatible)](/api-reference/video/list-volc-compatible-seedance-tasks)
+- [Cancel Task (Volc Compatible)](/api-reference/video/delete-volc-compatible-seedance-task)
+
+### Request Body Rules
+
+- `content[]` accepts `text`, `image_url`, `video_url`, `audio_url`, and `draft_task` items.
+- For `image_url`, omit `role` or use `first_frame` for image-to-video. Use `last_frame` together with a first frame, or `reference_image` for reference-to-video.
+- A public material URI such as `asset://asset-YYYYMMDDHHMMSS-xxxxx` can be used where the selected Seedance workflow accepts that media role.
+- The REST body accepts only official fields, including `model`, `content`, `ratio`, `duration`, `resolution`, `generate_audio`, `watermark`, `return_last_frame`, `seed`, `execution_expires_after`, and `safety_identifier`. `generate_audio` defaults to `false`.
+- `callback_url` accepts a public HTTP(S) endpoint. AI Sonar sends the same query-task body for `queued`, `running`, `succeeded`, `failed`, and `expired`; only `succeeded` and `failed` use the official five-second, three-retry behavior.
+
+## Minimal REST Example
+
+```bash
+curl 'https://api.aisonar.dev/api/v3/contents/generations/tasks' \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Idempotency-Key: $CLIENT_JOB_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2.0",
+    "content": [
+      {"type":"text","text":"A cinematic product reveal"},
+      {"type":"image_url","role":"reference_image","image_url":{"url":"https://example.com/reference.png"}}
+    ],
+    "ratio": "16:9",
+    "duration": 5,
+    "resolution": "720p"
+  }'
+```
+
+Store the returned `cgt-...` ID. Poll until `status` becomes `succeeded`, `failed`, `cancelled`, or `expired`; do not treat the create response as a completed video. If you provide `callback_url`, allow repeated `succeeded` or `failed` notifications and keep polling as a recovery path.
+
+### Keep v1 And v3 Types Separate
+
+Do not reuse a `/v1/tasks/{id}` response struct for this endpoint. The unified v1 API reports `pending`, `processing`, `completed`, and `failed`; the Volc-compatible v3 API reports `queued`, `running`, `succeeded`, `failed`, `cancelled`, and `expired`. The official v3 response also represents `duration` as a JSON string and omits `error` on non-failed tasks.
+
+For safe recovery after a create timeout or disconnect, add a unique `Idempotency-Key` to the REST create request. Retrying the same body with the same key returns the original `cgt-...` ID; the same key with a different body returns `409`.
+
+## Materials And Real-Person Verification
+
+The same Action endpoint also supports the 10 material and material-group operations. See [Material Actions (Volc Compatible)](/api-reference/video/volc-compatible-material-actions) for their exact PascalCase bodies, filters, paging, response envelope, and 12-hour material URLs.
+
+Real-person materials add two Actions before upload:
+
+1. [Create Visual Validation Session](/api-reference/video/create-visual-validation-session)
+2. [Get Visual Validation Result](/api-reference/video/get-visual-validation-result)
+
+The second Action returns the verified `GroupId`. Use that ID with `CreateAsset`; a client cannot create a `LivenessFace` group directly.
+
+## Migration Checklist
+
+1. Replace the API host with `https://api.aisonar.dev`.
+2. Replace AK/SK signing with an AI Sonar Bearer API key.
+3. Keep the official REST task method, path, and request-body casing; keep Action and version only for material or validation operations.
+4. Keep the same `ProjectName` across related material and verification requests.
+5. Store AI Sonar task, group, and asset IDs instead of service-only identifiers.
+6. Verify one create, poll, list, and error response before moving production traffic.

@@ -7,11 +7,11 @@ description: "Structured error hints for AI agents to self-correct on the first 
 
 AI Sonar's Agent-First API enriches error responses with structured hints that AI agents can parse and act on immediately — no web searches, no doc lookups, no guesswork.
 
-Every error response includes optional fields like `did_you_mean`, `suggestions`, `hint`, `retryable`, and `retry_after` inside the standard `error` object. These fields are backward-compatible — clients that don't use them see no difference.
+OpenAI-compatible Chat Completions and Responses gateway errors may include optional fields such as `did_you_mean`, `suggestions`, `hint`, `retryable`, and `retry_after` inside the `error` object. Anthropic Messages and Gemini endpoints keep their native error shapes and do not promise these extensions.
 
 ## Error Hint Fields
 
-All hint fields are optional extensions inside the `error` object:
+For OpenAI-compatible gateway errors, all hint fields are optional extensions inside the `error` object:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -141,17 +141,18 @@ When input exceeds the model's context window (with corrective hints):
 }
 ```
 
-## Native Endpoint Headers
+## Native Endpoint Discovery
 
-When you call `/v1/chat/completions` with a model that has a native endpoint (Anthropic or Gemini), the **success response** includes optimization headers:
+Do not infer native protocol availability from a model or provider name, or from Chat response headers. Before choosing a native endpoint, read `GET /v1/models/{model}` and use only a format in `aisonar.accepted_request_formats`. Native requests use only the advertised protocol; temporary service availability is still decided at request time.
 
-| Model Provider | Suggested Endpoint | Benefit |
-|---------------|-------------------|---------|
-| Anthropic (Claude) | `/v1/messages` | No format conversion, extended thinking, prompt caching |
-| Google (Gemini) | `/v1beta/gemini` | No format conversion, grounding, safety settings |
-| OpenAI | — | Chat completions is already the native format |
+| Request format | Endpoint |
+|----------------|----------|
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
 
-These headers appear on both streaming and non-streaming responses.
+An advertised request format controls endpoint availability; support for individual fields and tools remains service-specific.
 
 ## /v1/models Enhancements
 

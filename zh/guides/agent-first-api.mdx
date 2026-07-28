@@ -7,11 +7,11 @@ description: "为 AI Agent 提供结构化错误提示，帮助它在第一次�
 
 AI Sonar 的 Agent-First API 会在错误响应中加入结构化提示，AI Agent 可以立即解析并采取行动 —— 无需网络搜索、无需查阅文档、无需猜测。
 
-每个错误响应的标准 `error` 对象中都包含可选字段，例如 `did_you_mean`、`suggestions`、`hint`、`retryable` 和 `retry_after`。这些字段向后兼容 —— 不使用它们的客户端不会有任何差异。
+OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 对象中包含 `did_you_mean`、`suggestions`、`hint`、`retryable` 和 `retry_after` 等可选字段。Anthropic Messages 与 Gemini 保持各自原生错误形状，不承诺这些扩展字段。
 
 ## 错误提示字段
 
-所有提示字段都是 `error` 对象内的可选扩展：
+对 OpenAI 兼容 gateway 错误而言，所有提示字段都是 `error` 对象内的可选扩展：
 
 | 字段 | 类型 | 描述 |
 |-------|------|-------------|
@@ -141,17 +141,20 @@ OpenAI 兼容端点使用上文所示的标准错误结构；Anthropic 兼容和
 }
 ```
 
-## 原生端点头部
+## 原生端点发现
 
-当你对有原生端点（Anthropic 或 Gemini）的模型调用 `/v1/chat/completions` 时，**成功响应** 会包含优化头部：
+不要根据模型名、提供方名称或 Chat 响应头推断原生协议是否可用。选择原生端点前，先读取 `GET /v1/models/{model}`，只使用模型详情明确广告且存在同协议路由的请求格式。
 
-| 模型提供方 | 建议的端点 | 好处 |
-|---------------|-------------------|---------|
-| Anthropic (Claude) | `/v1/messages` | 无需格式转换、延长思考阶段、提示缓存 |
-| Google (Gemini) | `/v1beta/gemini` | 无需格式转换、grounding（信息落地/归因）、安全设置 |
-| OpenAI | — | Chat completions 已经是原生格式 |
+应读取的字段是 `aisonar.accepted_request_formats`。
 
-这些头部会出现在流式和非流式响应中。
+| 请求格式 | 端点 |
+|----------|------|
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
+
+广告的请求格式只决定端点是否可用；具体字段和工具是否受支持仍由服务端决定。
 
 ## /v1/models 增强
 

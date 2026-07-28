@@ -67,16 +67,14 @@ Edit `~/.codex/config.toml`:
 
 ```toml
 model_provider = "aisonar"
-model = "gpt-5.4"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
-fast_mode = true
-model_context_window = 1000000
-model_auto_compact_token_limit = 900000
+model_context_window = 258000
+model_auto_compact_token_limit = 232200
 sandbox_mode = "danger-full-access"
 approval_policy = "never"
 
-disable_response_storage = false
 personality = "friendly"
 service_tier = "fast"
 
@@ -89,11 +87,10 @@ supports_websockets = true
 websocket_connect_timeout_ms = 15000
 
 [features]
-responses_websockets = true
-responses_websockets_v2 = true
+fast_mode = true
 ```
 
-This WebSocket mode is a Responses-over-WebSocket bridge for Codex clients. It accepts `response.create` and `response.cancel`; it is not the OpenAI Realtime API and does not accept `session.update`, `conversation.item.*`, `input_audio_buffer.*`, binary audio, or nested Realtime `response.create.response` envelopes.
+This WebSocket mode is a Responses-over-WebSocket bridge for Codex clients. It accepts only official `response.create` events; `stream` is implicit, and `background` and `response.cancel` are not available on this transport. It is not the OpenAI Realtime API and does not accept `session.update`, `conversation.item.*`, `input_audio_buffer.*`, binary audio, or nested Realtime `response.create.response` envelopes.
 
 <Note>
 If the config file doesn't exist, run `codex` once to generate it, then edit the file. Restart Codex completely after changing `config.toml` so the new provider settings are reloaded.
@@ -104,7 +101,7 @@ Codex is deprecating `chat/completions` support for custom providers. Keep `wire
 </Warning>
 
 <Note>
-If a request uses Responses-only fields that are not supported on the selected model or route, AI Sonar returns an explicit error instead of silently downgrading the request.
+AI Sonar forwards unknown Responses fields best-effort without silently downgrading the request to Chat Completions. The selected service decides whether a field or combination is supported.
 </Note>
 
 ## Basic Usage
@@ -124,14 +121,14 @@ codex "Fix the bug in main.py line 42"
 **Specify model:**
 
 ```bash
-codex -m gpt-5.4 "Build a REST API server"
+codex -m gpt-5.6-sol "Build a REST API server"
 ```
 
 ## Recommended Models
 
 | Model | Best For |
 |-------|----------|
-| `gpt-5.4` | Best default choice for coding and reasoning |
+| `gpt-5.6-sol` | Best default choice for coding and reasoning |
 | `gpt-5-mini` | Faster, cheaper fallback for coding workflows |
 | `claude-sonnet-4-6` | Code review, documentation |
 | `deepseek-r1` | Algorithm design, reasoning |

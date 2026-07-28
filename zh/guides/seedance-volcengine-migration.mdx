@@ -1,0 +1,92 @@
+---
+title: "从火山迁移 Seedance"
+description: "以最小请求改动把火山风格的 Seedance 任务和素材接入迁移到 AI Sonar。"
+---
+
+如果你的应用已经发送火山风格的 Seedance 请求，请使用本指南。任务接口保留官方 REST 路径、`content[]` 请求体、响应字段、错误信封和 callback 生命周期；素材与真人验证接口继续保留 PascalCase Action 契约。必须修改的是主机和鉴权凭据。
+
+## 需要修改的内容
+
+| 项目 | 现有火山客户端 | AI Sonar |
+| --- | --- | --- |
+| 基础 URL | `Volcengine API` | `https://api.aisonar.dev/` |
+| 鉴权 | `AK/SK` | `Authorization: Bearer <API_KEY>` |
+| 任务传输 | 官方 `/api/v3/contents/generations/tasks` REST 路径 | 保持不变 |
+| 素材/验证 Action | `Action`, `Version` | 保持不变 |
+| 任务请求体 | `content[]` | `content[]` |
+| 素材请求体 | `PascalCase` | `PascalCase` |
+| 异步结果 | `任务 ID` | `cgt-...` + 轮询 + 可选 callback |
+
+仅带 AK/SK 的请求会返回官方四字段错误信封，其中错误码为 `401 AuthenticationError`。任务客户端使用 `/api/v3/contents/generations/tasks`；素材和真人验证 Action 客户端仍可使用 `POST /?Action=...&Version=2024-01-01` 或 `/api/v3` 前缀。
+
+## 请求形状与任务生命周期
+
+如果你的系统已经按火山风格组织 Seedance 请求，例如使用 `content[]`、REST 任务路径或 Action 名称，可以使用兼容入口，只替换域名和鉴权方式，不必先把请求体改成 `/v1/videos/generations` 的统一格式。新的跨模型视频接入仍建议优先使用 AI Sonar 统一的 [`/v1/videos/generations`](/zh/api-reference/video/create-video)。
+
+### 接入流程
+
+1. 使用 `Authorization: Bearer <API_KEY>` 鉴权。当前版本不接受火山 AK/SK 签名。
+2. REST 创建使用 `POST /api/v3/contents/generations/tasks`。任务 Action 别名只作为 AI Sonar 旧版兼容入口保留，不属于一比一官方任务契约。
+3. 创建响应返回 `cgt-...` 任务 ID。用查询任务接口轮询，直到 `status` 变为 `succeeded`、`failed`、`cancelled` 或 `expired`。
+4. 可选传入公网 HTTP(S) `callback_url`。`queued`、`running`、`succeeded`、`failed`、`expired` 每次状态变化时都会发送与查询接口完全相同的任务对象；仅 `succeeded`、`failed` 按官方规则在五秒未成功时最多重试三次。请保留轮询作为兜底。
+
+### 请求体要点
+
+- `content[]` 支持 `text`、`image_url`、`video_url`、`audio_url` 和 `draft_task`。
+- `image_url` 不传 `role` 或传 `first_frame` 时表示首帧；`last_frame` 必须和首帧一起使用；`reference_image` 表示参考图。
+- 图片 URL 在需要素材引用的 Seedance 模型里会自动准备为 AI Sonar 可复用素材。若 60 秒内仍未准备完成，创建请求会返回可重试的素材准备中错误。
+- REST 请求只接受官方字段，包括 `model`、`content`、`ratio`、`duration`、`resolution`、`generate_audio`、`watermark`、`return_last_frame`、`seed`、`execution_expires_after` 和 `safety_identifier`；`generate_audio` 默认值为 `false`。
+
+### 参考页面
+
+- [创建任务（火山兼容）](/zh/api-reference/video/create-volc-compatible-seedance-task)
+- [查询任务（火山兼容）](/zh/api-reference/video/get-volc-compatible-seedance-task)
+- [任务列表（火山兼容）](/zh/api-reference/video/list-volc-compatible-seedance-tasks)
+- [取消任务（火山兼容）](/zh/api-reference/video/delete-volc-compatible-seedance-task)
+
+## 官方任务路径
+
+| 方法与路径 | 用途 |
+| --- | --- |
+| `POST /api/v3/contents/generations/tasks` | 创建视频任务 |
+| `GET /api/v3/contents/generations/tasks/{id}` | 查询单个任务 |
+| `GET /api/v3/contents/generations/tasks` | 列出任务 |
+| `DELETE /api/v3/contents/generations/tasks/{id}` | 取消或删除任务 |
+
+## 最小 REST 示例
+
+```bash
+curl 'https://api.aisonar.dev/api/v3/contents/generations/tasks' \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Idempotency-Key: $CLIENT_JOB_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model":"seedance-2.0",
+    "content":[
+      {"type":"text","text":"A cinematic product reveal"},
+      {"type":"image_url","role":"reference_image","image_url":{"url":"https://example.com/reference.png"}}
+    ],
+    "ratio":"16:9",
+    "duration":5,
+    "resolution":"720p"
+  }'
+```
+
+## 素材与真人验证
+
+同一个 Action 入口也支持 10 个素材和素材组操作。请查看[火山兼容素材 Action](/zh/api-reference/video/volc-compatible-material-actions)了解 PascalCase 请求体、筛选、分页、响应信封和 12 小时素材 URL。真人素材在上传前还需要调用[创建视觉验证会话](/zh/api-reference/video/create-visual-validation-session)和[获取视觉验证结果](/zh/api-reference/video/get-visual-validation-result)。
+
+## 迁移检查清单
+
+1. 把 API 主机替换为 `https://api.aisonar.dev`。
+2. 把 AK/SK 签名替换为 AI Sonar Bearer API Key。
+3. 任务请求保留官方 REST 方法、路径和请求体大小写；只有素材与验证操作继续保留 Action 和版本。
+4. 相关素材和真人验证请求使用相同的 `ProjectName`。
+5. 保存 AI Sonar 返回的任务、素材组和素材 ID。
+6. 迁移生产流量前验证创建、轮询、列表和错误响应。
+
+## 不要混用 v1 与 v3 类型
+
+不要把 `/v1/tasks/{id}` 的响应 struct 直接用于本接口。统一 v1 的状态是 `pending`、`processing`、`completed`、`failed`；火山兼容 v3 的状态是 `queued`、`running`、`succeeded`、`failed`、`cancelled`、`expired`。官方 v3 响应中的 `duration` 是 JSON 字符串，非失败任务不返回 `error`。
+
+为避免创建超时或连接断开后重复生成，REST 创建请求应携带唯一的 `Idempotency-Key`。使用同一 key 和不变请求体重试会找回原 `cgt-...` ID；同一 key 配不同请求体返回 `409`。

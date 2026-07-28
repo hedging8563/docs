@@ -18,6 +18,10 @@
       "description": "Chat completions API (OpenAI-compatible)"
     },
     {
+      "name": "Responses",
+      "description": "OpenAI Responses API-compatible native endpoints"
+    },
+    {
       "name": "Embeddings",
       "description": "Text embeddings API"
     },
@@ -70,7 +74,7 @@
           "Chat"
         ],
         "summary": "Create chat completion",
-        "description": "Creates a model response for the given chat conversation. Supports streaming and function calling.",
+        "description": "Creates a model response from a Chat Completions request. Chat-native services receive the request shape unchanged apart from gateway authentication metadata; unknown fields are forwarded on a best-effort basis. Portable Chat requests may be compiled one-way to another protocol when a compatible protocol endpoint is selected.",
         "operationId": "createChatCompletion",
         "requestBody": {
           "required": true,
@@ -820,7 +824,7 @@
           "Video"
         ],
         "summary": "Create Seedance material asset",
-        "description": "Uploads one Seedance material asset URL into a AI Sonar material group. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
+        "description": "Uploads one Seedance material asset URL into an AI Sonar material group. Image materials must use supported dimensions; an invalid source is rejected with 400 seedance_material_source_invalid instead of remaining in PROCESSING. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
         "operationId": "createSeedanceMaterialAsset",
         "requestBody": {
           "required": true,
@@ -969,6 +973,18 @@
               ]
             },
             "description": "Filter by material library class."
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -1034,6 +1050,18 @@
               "type": "string"
             },
             "example": "asset-20260720123456-qn7wr"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -1159,8 +1187,39 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "description": "Material asset is still processing or has failed without an active replica",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The stored material source failed permanent validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "message": "Image width must be between 300px and 6000px.",
+                    "type": "invalid_request_error",
+                    "code": "seedance_material_source_invalid",
+                    "param": "asset_url"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
           }
         },
         "security": [
@@ -1185,6 +1244,18 @@
               "type": "string"
             },
             "example": "asset-20260720123456-qn7wr"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -1751,7 +1822,8 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 1000,
+              "default": 20
             },
             "description": "Maximum number of batches to return"
           }
@@ -1862,7 +1934,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnthropicMessageBatch"
+                  "$ref": "#/components/schemas/AnthropicDeletedMessageBatch"
                 }
               }
             }
@@ -2003,7 +2075,7 @@
           "Gemini"
         ],
         "summary": "Generate content (Gemini-compatible)",
-        "description": "Generates content using Google Gemini API format. Supports text and vision models.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
+        "description": "Generates content using the native Gemini GenerateContent shape. This route is exposed only when the model details advertise Gemini requests and a same-protocol route is currently available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are forwarded best-effort and support is determined by the selected provider.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiGenerateContent",
         "parameters": [
           {
@@ -2081,16 +2153,44 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Gemini-native invalid request error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "description": "Gemini-native authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "description": "Gemini-native payment error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "description": "Gemini-native server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2101,7 +2201,7 @@
           "Gemini"
         ],
         "summary": "Stream generate content (Gemini-compatible)",
-        "description": "Streams content generation using Google Gemini API format. Returns Server-Sent Events.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
+        "description": "Streams native Gemini GenerateContent Server-Sent Events without adding Chat Completions terminators. Metadata-only chunks, intermediate chunks without finishReason, and natural EOF are valid.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiStreamGenerateContent",
         "parameters": [
           {
@@ -2146,16 +2246,283 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Gemini-native invalid request error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "description": "Gemini-native authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "description": "Gemini-native payment error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "description": "Gemini-native server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1beta/models/{model}:countTokens": {
+      "post": {
+        "tags": [
+          "Gemini"
+        ],
+        "summary": "Count tokens (Gemini-compatible)",
+        "description": "Counts tokens using the native Gemini CountTokens contract. Unknown fields and either official ProtoJSON field-name spelling are forwarded best-effort.",
+        "operationId": "geminiCountTokens",
+        "parameters": [
+          {
+            "name": "model",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contents": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "generateContentRequest": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "generate_content_request": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gemini-native token count response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gemini-native error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1beta/models/{model}:embedContent": {
+      "post": {
+        "tags": [
+          "Gemini"
+        ],
+        "summary": "Embed content (Gemini-compatible)",
+        "description": "Creates an embedding using the native Gemini EmbedContent contract.",
+        "operationId": "geminiEmbedContent",
+        "parameters": [
+          {
+            "name": "model",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "taskType": {
+                    "type": "string"
+                  },
+                  "task_type": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "outputDimensionality": {
+                    "type": "integer"
+                  },
+                  "output_dimensionality": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gemini-native embedding response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gemini-native error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1beta/models/{model}:batchEmbedContents": {
+      "post": {
+        "tags": [
+          "Gemini"
+        ],
+        "summary": "Batch embed contents (Gemini-compatible)",
+        "description": "Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
+        "operationId": "geminiBatchEmbedContents",
+        "parameters": [
+          {
+            "name": "model",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requests"
+                ],
+                "properties": {
+                  "requests": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gemini-native batch embedding response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gemini-native error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2163,10 +2530,10 @@
     "/v1/responses": {
       "post": {
         "tags": [
-          "Chat"
+          "Responses"
         ],
         "summary": "Create response (OpenAI Responses API)",
-        "description": "Creates a response using the OpenAI Responses API format. Supports stateful conversation management.",
+        "description": "Creates a response using the native OpenAI Responses API shape. The model details must advertise the Responses request format and a same-protocol route must be currently available; model names and providers do not imply availability. Unknown request fields are forwarded on a best-effort basis and remain subject to the selected provider's support.",
         "operationId": "createResponse",
         "requestBody": {
           "required": true,
@@ -2175,8 +2542,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "model",
-                  "input"
+                  "model"
                 ],
                 "properties": {
                   "model": {
@@ -2216,7 +2582,7 @@
                       "type": "object",
                       "additionalProperties": true
                     },
-                    "description": "Tools available to the model. For hosted image_generation tools that use the default image tool model or explicitly set model: gpt-image-2, AI Sonar removes unsupported input_fidelity before forwarding because GPT Image 2 already treats image inputs as high fidelity. Do not send background: transparent for that tool; AI Sonar does not silently remove it because that changes output semantics."
+                    "description": "Tools available to the model. Tool types and combinations are validated by the selected service."
                   },
                   "tool_choice": {
                     "oneOf": [
@@ -2238,12 +2604,8 @@
                         "description": "When true, request obfuscated tokens in Responses stream events from compatible models."
                       }
                     },
-                    "additionalProperties": false,
+                    "additionalProperties": true,
                     "description": "Responses streaming options."
-                  },
-                  "reasoning_effort": {
-                    "type": "string",
-                    "description": "Reasoning effort hint for compatible models."
                   },
                   "include": {
                     "type": "array",
@@ -2259,17 +2621,35 @@
                     ],
                     "description": "Service tier hint for compatible providers."
                   },
-                  "truncation_strategy": {
+                  "truncation": {
                     "type": "string",
-                    "description": "Truncation strategy for long conversations when supported."
+                    "description": "Truncation strategy for long conversations."
                   },
-                  "seed": {
-                    "type": "integer",
-                    "description": "Seed for deterministic-compatible providers."
+                  "background": {
+                    "type": "boolean",
+                    "description": "Whether to run the response asynchronously."
                   },
-                  "user": {
+                  "previous_response_id": {
                     "type": "string",
-                    "description": "End-user identifier."
+                    "description": "ID of a previous response to continue."
+                  },
+                  "prompt": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Reference to a reusable prompt template and variables."
+                  },
+                  "store": {
+                    "type": "boolean",
+                    "description": "Whether the response is stored for later retrieval."
+                  },
+                  "reasoning": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Reasoning configuration."
+                  },
+                  "top_p": {
+                    "type": "number",
+                    "description": "Nucleus sampling probability."
                   },
                   "parallel_tool_calls": {
                     "type": "boolean",
@@ -2285,7 +2665,8 @@
                     "additionalProperties": true,
                     "description": "Text formatting options."
                   }
-                }
+                },
+                "additionalProperties": true
               }
             }
           }
@@ -2306,7 +2687,7 @@
     "/v1/responses/{id}": {
       "get": {
         "tags": [
-          "Chat"
+          "Responses"
         ],
         "summary": "Retrieve response",
         "description": "Retrieves a stored Responses API response by AI Sonar response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
@@ -2320,6 +2701,41 @@
               "type": "string"
             },
             "description": "Response id returned by POST /v1/responses."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Additional response fields to include."
+          },
+          {
+            "name": "include_obfuscation",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether streamed events include obfuscation fields."
+          },
+          {
+            "name": "stream",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether to retrieve the response as an event stream."
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Sequence number after which streaming events are returned."
           }
         ],
         "responses": {
@@ -2339,10 +2755,10 @@
       },
       "delete": {
         "tags": [
-          "Chat"
+          "Responses"
         ],
         "summary": "Delete response",
-        "description": "Deletes a stored Responses API response by AI Sonar response id. When applicable, AI Sonar clears the provider-side record before clearing local state.",
+        "description": "Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response.",
         "operationId": "deleteResponse",
         "parameters": [
           {
@@ -2374,10 +2790,10 @@
     "/v1/responses/compact": {
       "post": {
         "tags": [
-          "Chat"
+          "Responses"
         ],
         "summary": "Compact response context (OpenAI Responses API)",
-        "description": "Compacts a Responses conversation for Codex CLI remote compaction. This endpoint uses `POST /v1/responses/compact`; do not use `/v1/compact`. The request `model` is the current Codex session model and must be available on the Responses path.",
+        "description": "Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path.",
         "operationId": "compactResponse",
         "requestBody": {
           "required": true,
@@ -2821,8 +3237,19 @@
           "Files"
         ],
         "summary": "Upload file",
-        "description": "Uploads a JSONL batch input file or an image input file that can be referenced by file_id in supported image edit requests.",
+        "description": "Uploads an AI Sonar/OpenAI-compatible batch or image file. With anthropic-beta: files-api-2025-04-14, uploads an Anthropic Files resource without a purpose field and returns Anthropic file metadata.",
         "operationId": "uploadFile",
+        "parameters": [
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2830,8 +3257,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "file",
-                  "purpose"
+                  "file"
                 ],
                 "properties": {
                   "file": {
@@ -2845,7 +3271,7 @@
                       "user_data",
                       "vision"
                     ],
-                    "description": "Use batch for Batch API JSONL files. Use user_data or vision for image files that will be referenced from image edits."
+                    "description": "Required in AI Sonar/OpenAI-compatible mode: use batch for Batch API JSONL files, or user_data/vision for image edits. Omit in Anthropic Files mode."
                   },
                   "model": {
                     "type": "string",
@@ -2862,7 +3288,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileObject"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicFileObject"
+                    }
+                  ]
                 }
               }
             }
@@ -2891,7 +3324,8 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 1000,
+              "default": 20
             }
           },
           {
@@ -2900,6 +3334,30 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "after_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anthropic Files cursor. Return files after this public file id. Requires the Anthropic Files beta header and cannot be combined with before_id."
+          },
+          {
+            "name": "before_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anthropic Files cursor. Return files before this public file id. Requires the Anthropic Files beta header and cannot be combined with after_id."
+          },
+          {
+            "name": "scope_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reserved Anthropic Files scope cursor. AI Sonar currently returns an explicit unsupported error rather than silently ignoring this value."
           },
           {
             "name": "purpose",
@@ -2914,6 +3372,15 @@
               ]
             },
             "description": "Optional file purpose filter. batch and batch_output cover Batch API files; user_data and vision cover AI Sonar image/reference file bindings. Anthropic Files API mode is selected by Anthropic headers rather than this query parameter."
+          },
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         ],
         "responses": {
@@ -2922,7 +3389,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileListResponse"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileListResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicFileListResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -2948,6 +3422,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         ],
         "responses": {
@@ -2956,7 +3439,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileObject"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicFileObject"
+                    }
+                  ]
                 }
               }
             }
@@ -2982,6 +3472,15 @@
               "type": "string"
             },
             "description": "File ID returned by the Files API."
+          },
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         ],
         "responses": {
@@ -2990,7 +3489,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileDeletedObject"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileDeletedObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicDeletedFile"
+                    }
+                  ]
                 }
               }
             }
@@ -3354,7 +3860,7 @@
           "Realtime"
         ],
         "summary": "Connect to realtime WebSocket",
-        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a AI Sonar WebSocket proxy; it does not expose OpenAI Realtime REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
+        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is an AI Sonar WebSocket proxy; it does not expose OpenAI Realtime REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
         "operationId": "connectRealtime",
         "parameters": [
           {
@@ -4823,7 +5329,7 @@
           "Video"
         ],
         "summary": "Create Seedance material asset group",
-        "description": "Creates a AI Sonar Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
+        "description": "Creates an AI Sonar Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
         "operationId": "createSeedanceMaterialAssetGroup",
         "requestBody": {
           "required": true,
@@ -4946,6 +5452,18 @@
               ]
             },
             "description": "Filter by AI Sonar material library class."
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -5018,6 +5536,18 @@
               "type": "string"
             },
             "example": "group-20260720123456-vrt01"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -5065,7 +5595,7 @@
           "Video"
         ],
         "summary": "Update Seedance material asset group",
-        "description": "Updates display metadata for a AI Sonar Seedance material group.",
+        "description": "Updates display metadata for an AI Sonar Seedance material group.",
         "operationId": "updateSeedanceMaterialAssetGroup",
         "parameters": [
           {
@@ -5145,7 +5675,7 @@
           "Video"
         ],
         "summary": "Delete Seedance material asset group",
-        "description": "Deletes a AI Sonar Seedance material group and its material assets. The operation is irreversible when accepted.",
+        "description": "Deletes an AI Sonar Seedance material group and its material assets. The operation is irreversible when accepted.",
         "operationId": "deleteSeedanceMaterialAssetGroup",
         "parameters": [
           {
@@ -5156,6 +5686,18 @@
               "type": "string"
             },
             "example": "group-20260720123456-vrt01"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -5198,9 +5740,22 @@
         "tags": [
           "Seedance Volc Compatible"
         ],
-        "summary": "Create Seedance task (Volc-compatible)",
-        "description": "Creates a Seedance 2.0 video generation task using a Volc-style REST body. Authentication uses a AI Sonar Bearer API key.",
+        "summary": "Create Seedance task (Volc wire-compatible)",
+        "description": "Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses an AI Sonar Bearer API key. AI Sonar additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
         "operationId": "createVolcCompatibleSeedanceTask",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "description": "Client-generated key for idempotent REST task creation. Under the same AI Sonar API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -5226,7 +5781,7 @@
                 "ratio": "16:9",
                 "duration": 5,
                 "resolution": "720p",
-                "generate_audio": true
+                "generate_audio": false
               }
             }
           }
@@ -5234,6 +5789,17 @@
         "responses": {
           "200": {
             "description": "Task created",
+            "headers": {
+              "Idempotency-Replayed": {
+                "description": "Present with value true when this response recovered an earlier create request.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true"
+                  ]
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -5262,8 +5828,44 @@
               }
             }
           },
+          "409": {
+            "description": "Idempotency key conflict or original request still in progress",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying an in-progress request with the same key and body.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Idempotency state temporarily unavailable",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying with the same key and body.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -5289,6 +5891,7 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
+              "maximum": 500,
               "default": 1
             },
             "description": "Page number."
@@ -5326,10 +5929,15 @@
             "name": "filter.task_ids",
             "in": "query",
             "required": false,
+            "style": "form",
+            "explode": true,
             "schema": {
-              "type": "string"
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
-            "description": "Comma-separated task IDs."
+            "description": "Exact task IDs. Repeat filter.task_ids for multiple IDs."
           },
           {
             "name": "filter.model",
@@ -5600,7 +6208,7 @@
           "Seedance Volc Compatible"
         ],
         "summary": "Seedance Action dispatcher (POST)",
-        "description": "Dispatches Volc-style Action requests with AI Sonar Bearer authentication. Real-person validation uses CreateVisualValidateSession and GetVisualValidateResult with Version=2024-01-01; these actions are POST-only.",
+        "description": "Dispatches Volc-style Action requests with AI Sonar Bearer authentication. Real-person validation and material asset Actions use Version=2024-01-01 and are POST-only. The same POST contract is also available at the API root for endpoint-only migration from Volcengine.",
         "operationId": "dispatchVolcCompatibleSeedanceActionPost",
         "parameters": [
           {
@@ -5615,7 +6223,17 @@
                 "ListContentsGenerationsTasks",
                 "DeleteContentsGenerationsTasks",
                 "CreateVisualValidateSession",
-                "GetVisualValidateResult"
+                "GetVisualValidateResult",
+                "CreateAssetGroup",
+                "ListAssetGroups",
+                "GetAssetGroup",
+                "UpdateAssetGroup",
+                "DeleteAssetGroup",
+                "CreateAsset",
+                "ListAssets",
+                "GetAsset",
+                "UpdateAsset",
+                "DeleteAsset"
               ]
             }
           },
@@ -5642,6 +6260,9 @@
                     "$ref": "#/components/schemas/VolcGetVisualValidateResultRequest"
                   },
                   {
+                    "$ref": "#/components/schemas/VolcMaterialActionRequest"
+                  },
+                  {
                     "type": "object",
                     "additionalProperties": true
                   }
@@ -5652,7 +6273,7 @@
         },
         "responses": {
           "200": {
-            "description": "Action response. Content-generation actions return task JSON; real-person validation actions return the official ResponseMetadata + Result envelope.",
+            "description": "Action response. Content-generation actions return task JSON; real-person validation and material asset actions return the official ResponseMetadata + Result envelope.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5671,6 +6292,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/VolcGetVisualValidateResultResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcMaterialActionResponse"
                     }
                   ]
                 }
@@ -5936,6 +6560,26 @@
               "$ref": "#/components/schemas/Tool"
             }
           },
+          "functions": {
+            "type": "array",
+            "description": "Deprecated function definitions retained by the official Chat Completions contract.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "function_call": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "description": "Deprecated function-call selection retained by the official Chat Completions contract."
+          },
           "tool_choice": {
             "oneOf": [
               {
@@ -6019,11 +6663,6 @@
             "maximum": 20,
             "description": "Number of most likely tokens to return at each position when logprobs is enabled."
           },
-          "top_k": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Top-k sampling cutoff for compatible providers."
-          },
           "logit_bias": {
             "type": "object",
             "additionalProperties": {
@@ -6060,18 +6699,6 @@
             },
             "description": "Language settings for models that translate audio or video through Chat Completions."
           },
-          "speech_rate": {
-            "type": "number",
-            "minimum": 0.5,
-            "maximum": 2,
-            "description": "Speech rate for compatible translated audio output."
-          },
-          "repetition_penalty": {
-            "type": "number",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Repetition penalty for compatible models."
-          },
           "prediction": {
             "type": "object",
             "additionalProperties": true,
@@ -6084,7 +6711,8 @@
             ],
             "description": "Service tier hint for compatible providers."
           }
-        }
+        },
+        "additionalProperties": true
       },
       "ChatMessage": {
         "type": "object",
@@ -7683,6 +8311,13 @@
             "type": "string",
             "description": "AI Sonar material group ID. Required for liveness_face materials; optional for aigc_avatar."
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material asset. Assets and groups are isolated by project inside the authenticated organization."
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -7718,6 +8353,10 @@
             "nullable": true,
             "description": "AI Sonar material group ID that owns this material asset."
           },
+          "project_name": {
+            "type": "string",
+            "description": "Project scope for this material asset."
+          },
           "library_type": {
             "type": "string",
             "enum": [
@@ -7752,7 +8391,8 @@
           },
           "error_message": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "Public-safe terminal processing error. Permanent source validation failures include the rejected dimension constraint."
           },
           "metadata": {
             "type": "object",
@@ -7762,6 +8402,10 @@
           "created_at": {
             "type": "integer",
             "description": "Unix timestamp when the material asset record was created."
+          },
+          "updated_at": {
+            "type": "integer",
+            "description": "Unix timestamp when the material asset record was last updated."
           }
         }
       },
@@ -8444,6 +9088,7 @@
       },
       "GeminiRequest": {
         "type": "object",
+        "description": "Native Gemini GenerateContent request. ProtoJSON lowerCamelCase and original proto snake_case names are both accepted and preserved, including mixed requests. If both spellings of one field are present, AI Sonar does not merge them or choose a local precedence. Unknown fields are forwarded on a best-effort basis.",
         "required": [
           "contents"
         ],
@@ -8692,7 +9337,7 @@
               "candidateCount": {
                 "type": "integer",
                 "minimum": 1,
-                "description": "Number of response candidates for non-streaming generation. Streaming requests must omit this field or keep it at 1."
+                "description": "Requested number of response candidates. Support is determined by the selected service."
               },
               "responseModalities": {
                 "type": "array",
@@ -8748,7 +9393,7 @@
           },
           "tools": {
             "type": "array",
-            "description": "Gemini tools. Supported tool combinations depend on the selected model and route; unsupported native image-output tool combinations are rejected before processing.",
+            "description": "Gemini tools. Tool types and combinations are interpreted by the selected service.",
             "items": {
               "type": "object",
               "properties": {
@@ -8850,8 +9495,36 @@
           "cachedContent": {
             "type": "string",
             "description": "Gemini cached content resource name for compatible models."
+          },
+          "system_instruction": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Original proto field-name spelling of systemInstruction."
+          },
+          "generation_config": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Original proto field-name spelling of generationConfig."
+          },
+          "safety_settings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Original proto field-name spelling of safetySettings."
+          },
+          "tool_config": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Original proto field-name spelling of toolConfig."
+          },
+          "cached_content": {
+            "type": "string",
+            "description": "Original proto field-name spelling of cachedContent."
           }
-        }
+        },
+        "additionalProperties": true
       },
       "GeminiResponse": {
         "type": "object",
@@ -9094,6 +9767,118 @@
             "type": "boolean"
           }
         }
+      },
+      "AnthropicFileObject": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "filename",
+          "mime_type",
+          "size_bytes",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "file_01ABC123"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "downloadable": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "object",
+            "nullable": true,
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "session"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "AnthropicFileListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "first_id",
+          "last_id",
+          "has_more"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnthropicFileObject"
+            }
+          },
+          "first_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "AnthropicDeletedFile": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file_deleted"
+            ]
+          }
+        },
+        "additionalProperties": true
       },
       "BatchRequestCounts": {
         "type": "object",
@@ -9508,6 +10293,52 @@
       },
       "GeminiModelInfo": {
         "type": "object",
+        "required": [
+          "name",
+          "baseModelId",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "baseModelId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "inputTokenLimit": {
+            "type": "integer"
+          },
+          "outputTokenLimit": {
+            "type": "integer"
+          },
+          "supportedGenerationMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "temperature": {
+            "type": "number"
+          },
+          "maxTemperature": {
+            "type": "number"
+          },
+          "topP": {
+            "type": "number"
+          },
+          "topK": {
+            "type": "number"
+          }
+        },
         "additionalProperties": true
       },
       "GeminiModelListResponse": {
@@ -9704,18 +10535,26 @@
                   "$ref": "#/components/schemas/AnthropicMessagesRequest"
                 }
               },
-              "additionalProperties": false
+              "additionalProperties": true
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "AnthropicMessageBatch": {
         "type": "object",
         "description": "Anthropic-compatible message batch object relayed from the provider.",
         "required": [
           "id",
-          "type"
+          "type",
+          "processing_status",
+          "request_counts",
+          "ended_at",
+          "created_at",
+          "expires_at",
+          "cancel_initiated_at",
+          "archived_at",
+          "results_url"
         ],
         "properties": {
           "id": {
@@ -9752,6 +10591,16 @@
             "type": "string",
             "description": "ISO timestamp when the batch expires, when available"
           },
+          "cancel_initiated_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp when cancellation was initiated, when available"
+          },
+          "archived_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp when the batch was archived, when available"
+          },
           "results_url": {
             "type": "string",
             "nullable": true,
@@ -9760,8 +10609,34 @@
         },
         "additionalProperties": true
       },
+      "AnthropicDeletedMessageBatch": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Deleted Message Batch identifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "message_batch_deleted"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
       "AnthropicMessageBatchListResponse": {
         "type": "object",
+        "required": [
+          "data",
+          "has_more",
+          "first_id",
+          "last_id"
+        ],
         "properties": {
           "data": {
             "type": "array",
@@ -9944,6 +10819,13 @@
             "default": "aigc_avatar",
             "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through CreateVisualValidateSession followed by GetVisualValidateResult."
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material group."
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -9963,6 +10845,12 @@
             "type": "string",
             "nullable": true,
             "maxLength": 500
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default"
           },
           "metadata": {
             "type": "object",
@@ -9997,6 +10885,10 @@
               "liveness_face"
             ]
           },
+          "project_name": {
+            "type": "string",
+            "description": "Project scope for this material group."
+          },
           "group_name": {
             "type": "string",
             "nullable": true
@@ -10014,6 +10906,10 @@
             "additionalProperties": true
           },
           "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updated_at": {
             "type": "integer",
             "format": "int64"
           }
@@ -10059,6 +10955,12 @@
               "Video",
               "Audio"
             ]
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default"
           },
           "metadata": {
             "type": "object",
@@ -10436,93 +11338,59 @@
             "description": "Media role. first_frame/last_frame inputs cannot be mixed with reference_image/reference_video/reference_audio inputs."
           },
           "image_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "url"
-                ],
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "url"
             ],
-            "description": "Image reference. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience. AI Sonar also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE materials owned by the requesting organization, and preserves the item's first_frame, last_frame, or reference_image role."
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Image reference in the official {\"url\":\"https://...\"} shape. AI Sonar material URIs remain available as URL values without changing the request object shape."
           },
           "video_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "url"
-                ],
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "url"
             ],
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
             "description": "Video URL. Use role=reference_video."
           },
           "audio_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "url"
-                ],
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "url"
             ],
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
             "description": "Audio URL. Use role=reference_audio."
           },
           "draft_task": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "id"
             ],
-            "description": "Draft task reference. The object form {\"id\":\"cgt-...\"} matches the official request shape."
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Draft task reference in the official {\"id\":\"cgt-...\"} shape."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "VolcSeedanceCreateTaskRequest": {
         "type": "object",
@@ -10539,15 +11407,10 @@
           "content": {
             "type": "array",
             "minItems": 1,
+            "maxItems": 5,
             "items": {
               "$ref": "#/components/schemas/VolcSeedanceContentItem"
             }
-          },
-          "material_asset_id": {
-            "type": "string",
-            "pattern": "^asset-\\d{14}-[a-z0-9]{5}$",
-            "maxLength": 128,
-            "description": "AI Sonar compatibility shorthand for one ACTIVE Seedance material owned by the requesting organization. It is treated as the first frame and cannot be combined with other media inputs. For multiple materials, use content image_url items with explicit roles; top-level material_asset_ids is rejected as ambiguous."
           },
           "ratio": {
             "type": "string",
@@ -10564,7 +11427,19 @@
             "description": "Output aspect ratio. Defaults to adaptive when omitted."
           },
           "duration": {
-            "type": "integer",
+            "oneOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  -1
+                ]
+              },
+              {
+                "type": "integer",
+                "minimum": 4,
+                "maximum": 15
+              }
+            ],
             "default": 5,
             "example": 5,
             "description": "Video duration in seconds. Seedance 2.0 supports normal integer durations and -1 for automatic duration where the selected model supports it."
@@ -10574,17 +11449,16 @@
             "enum": [
               "480p",
               "720p",
-              "1080p",
-              "4k"
+              "1080p"
             ],
             "default": "720p",
             "example": "720p",
-            "description": "Requested output resolution. 4k is only available on supported Seedance 2.0 routes; fast/mini availability depends on model capability."
+            "description": "Requested output resolution. Model-specific availability still applies."
           },
           "generate_audio": {
             "type": "boolean",
-            "default": true,
-            "description": "Whether to generate audio. Defaults to true for Seedance 2.0 compatible requests."
+            "default": false,
+            "description": "Whether to generate synchronized audio. The official default is false."
           },
           "return_last_frame": {
             "type": "boolean",
@@ -10597,6 +11471,8 @@
           },
           "seed": {
             "type": "integer",
+            "minimum": -1,
+            "maximum": 4294967295,
             "default": -1,
             "description": "Random seed. -1 lets the model choose a seed. Forwarded on a best-effort basis for routes that accept it."
           },
@@ -10606,12 +11482,6 @@
             "maximum": 259200,
             "default": 172800,
             "description": "Task execution expiration window in seconds."
-          },
-          "priority": {
-            "type": "integer",
-            "default": 0,
-            "minimum": 0,
-            "maximum": 9
           },
           "safety_identifier": {
             "type": "string",
@@ -10629,9 +11499,21 @@
           },
           "tools": {
             "type": "array",
+            "maxItems": 1,
             "items": {
               "type": "object",
-              "additionalProperties": true
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "web_search"
+                  ]
+                }
+              },
+              "additionalProperties": false
             },
             "description": "Optional tools such as {\"type\":\"web_search\"} when supported by the selected model."
           },
@@ -10650,11 +11532,11 @@
           "callback_url": {
             "type": "string",
             "format": "uri",
-            "deprecated": true,
-            "description": "Not supported in this compatibility endpoint. Poll task status instead."
+            "maxLength": 2048,
+            "description": "Public HTTP(S) endpoint notified by POST whenever status changes. The body is identical to the get-task response. queued, running, succeeded, failed, and expired are delivered. For succeeded and failed, a delivery without success within 5 seconds is retried up to three times."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "VolcSeedanceCreateTaskResponse": {
         "type": "object",
@@ -10674,8 +11556,7 @@
         "required": [
           "id",
           "model",
-          "status",
-          "error"
+          "status"
         ],
         "properties": {
           "id": {
@@ -10697,12 +11578,6 @@
               "expired"
             ]
           },
-          "progress": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100,
-            "description": "Optional progress value returned only when a real progress value is available; use status to determine completion."
-          },
           "content": {
             "type": "object",
             "properties": {
@@ -10715,7 +11590,7 @@
                 "format": "uri"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           },
           "seed": {
             "type": "integer"
@@ -10727,35 +11602,31 @@
             "type": "string"
           },
           "duration": {
-            "type": "integer"
+            "type": "string"
           },
           "frames": {
             "type": "integer"
           },
           "framespersecond": {
-            "type": "number"
+            "type": "integer"
           },
           "generate_audio": {
             "type": "boolean"
           },
-          "return_last_frame": {
-            "type": "boolean"
-          },
-          "watermark": {
-            "type": "boolean"
-          },
           "tools": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            }
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "web_search"
+                ]
+              }
+            },
+            "additionalProperties": false
           },
           "safety_identifier": {
             "type": "string"
-          },
-          "priority": {
-            "type": "integer"
           },
           "draft": {
             "type": "boolean"
@@ -10766,19 +11637,39 @@
           "service_tier": {
             "type": "string"
           },
-          "camera_fixed": {
-            "type": "boolean"
-          },
           "execution_expires_after": {
             "type": "integer"
           },
           "usage": {
             "type": "object",
-            "additionalProperties": true
+            "properties": {
+              "completion_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "total_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "tool_usage": {
+                "type": "object",
+                "properties": {
+                  "web_search": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
           },
           "error": {
             "type": "object",
-            "nullable": true,
+            "required": [
+              "code",
+              "message"
+            ],
             "properties": {
               "code": {
                 "type": "string"
@@ -10787,7 +11678,7 @@
                 "type": "string"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           },
           "created_at": {
             "type": "integer",
@@ -10830,7 +11721,9 @@
             "type": "object",
             "required": [
               "code",
-              "message"
+              "message",
+              "param",
+              "type"
             ],
             "properties": {
               "code": {
@@ -10841,9 +11734,12 @@
               },
               "param": {
                 "type": "string"
+              },
+              "type": {
+                "type": "string"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -10985,6 +11881,186 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcMaterialActionRequest": {
+        "type": "object",
+        "description": "PascalCase request body for the material Action selected by the Action query parameter. Required fields depend on the selected Action.",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "description": "Asset or Asset Group identifier for get, update, and delete Actions."
+          },
+          "Name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "Description": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "GroupType": {
+            "type": "string",
+            "enum": [
+              "AIGC",
+              "LivenessFace"
+            ]
+          },
+          "GroupId": {
+            "type": "string"
+          },
+          "URL": {
+            "type": "string",
+            "format": "uri"
+          },
+          "AssetType": {
+            "type": "string",
+            "enum": [
+              "Image",
+              "Video",
+              "Audio"
+            ]
+          },
+          "Filter": {
+            "type": "object",
+            "properties": {
+              "GroupIds": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "GroupType": {
+                "type": "string",
+                "enum": [
+                  "AIGC",
+                  "LivenessFace"
+                ]
+              },
+              "Statuses": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "Active",
+                    "Processing",
+                    "Failed"
+                  ]
+                }
+              },
+              "Name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            },
+            "additionalProperties": false
+          },
+          "PageNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "PageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          },
+          "SortBy": {
+            "type": "string",
+            "enum": [
+              "CreateTime",
+              "UpdateTime",
+              "GroupId"
+            ],
+            "default": "CreateTime"
+          },
+          "SortOrder": {
+            "type": "string",
+            "enum": [
+              "Desc",
+              "Asc"
+            ],
+            "default": "Desc"
+          },
+          "ProjectName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project isolation scope within the authenticated organization."
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcMaterialResponseMetadata": {
+        "type": "object",
+        "required": [
+          "RequestId",
+          "Action",
+          "Version",
+          "Service",
+          "Region"
+        ],
+        "properties": {
+          "RequestId": {
+            "type": "string"
+          },
+          "Action": {
+            "type": "string",
+            "enum": [
+              "CreateAssetGroup",
+              "ListAssetGroups",
+              "GetAssetGroup",
+              "UpdateAssetGroup",
+              "DeleteAssetGroup",
+              "CreateAsset",
+              "ListAssets",
+              "GetAsset",
+              "UpdateAsset",
+              "DeleteAsset"
+            ]
+          },
+          "Version": {
+            "type": "string",
+            "enum": [
+              "2024-01-01"
+            ]
+          },
+          "Service": {
+            "type": "string",
+            "enum": [
+              "ark"
+            ]
+          },
+          "Region": {
+            "type": "string",
+            "enum": [
+              "cn-beijing"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcMaterialActionResponse": {
+        "type": "object",
+        "required": [
+          "ResponseMetadata",
+          "Result"
+        ],
+        "properties": {
+          "ResponseMetadata": {
+            "$ref": "#/components/schemas/VolcMaterialResponseMetadata"
+          },
+          "Result": {
+            "type": "object",
+            "description": "Action-dependent result. List Actions return Items, TotalCount, PageNumber, and PageSize; create and update Actions return Id; delete Actions return an empty object.",
+            "additionalProperties": true
           }
         },
         "additionalProperties": false
@@ -11607,13 +12683,27 @@
           },
           "request_format_details": {
             "$ref": "#/components/schemas/NonChatRequestFormatDetails"
+          },
+          "accepted_request_formats": {
+            "type": "array",
+            "description": "Request formats accepted by this model.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "openai_chat_completions",
+                "openai_responses",
+                "anthropic_messages",
+                "gemini_generate_content"
+              ]
+            }
           }
         },
         "additionalProperties": true,
         "required": [
           "lifecycle",
           "commercial",
-          "badges"
+          "badges",
+          "accepted_request_formats"
         ]
       }
     },
